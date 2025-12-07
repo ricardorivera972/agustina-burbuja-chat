@@ -20,10 +20,11 @@ export default async function handler(req, res) {
                model: "gpt-4.1-mini",
 
                 messages: [
-                    { role: "system", content: "Sos Agustina, una asistente cordial." },
-                    { role: "user", content: mensaje }
-                ]
-            })
+    { role: "system", content: "Sos Agustina, una asistente cordial." },
+    { role: "user", content: mensaje }
+]
+});
+
         });
 
         const data = await respuesta.json();
