@@ -22,15 +22,12 @@ export default async function handler(req, res) {
                 Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-               model:  "gpt-4.1",
-
-                messages: [
-    { role: "system", content: "Sos Agustina, una asistente cordial." },
-    { role: "user", content: mensaje }
-]
+    model: "gpt-4.1",
+    messages: [
+        { role: "system", content: "Sos Agustina, una asistente cordial." },
+        { role: "user", content: mensaje }
+    ]
 });
-
-        });
 
         const data = await respuesta.json();
         const texto = data.choices?.[0]?.message?.content || "No pude generar respuesta.";
