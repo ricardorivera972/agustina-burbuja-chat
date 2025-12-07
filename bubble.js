@@ -26,7 +26,8 @@ chatSend.addEventListener("click", async () => {
     chatInput.value = "";
 
     try {
-        const respuesta = await fetch("/api/chat", {
+        const respuesta = await fetch("https://agustina-burbuja-chat.vercel.app/api/chat", {
+
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ mensaje: text })
