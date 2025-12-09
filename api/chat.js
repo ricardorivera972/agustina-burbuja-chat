@@ -3,39 +3,45 @@ export const config = {
     bodyParser: true,
   },
 };
-export default async function handler(req, res) {
-    if (req.method !== "POST") {
-        return res.status(405).json({ error: "Método no permitido" });
-    }
 
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
+
+  try {
     const { mensaje } = req.body;
 
-    if (!mensaje) {
-        return res.status(400).json({ error: "No se envió ningún mensaje" });
+    // Llamada correcta al nuevo endpoint de OpenAI
+    const respuesta = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "user", content: mensaje }
+        ],
+      }),
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      console.error("Error de OpenAI:", data);
+      return res.status(500).json({ error: "Error en OpenAI", detalle: data });
     }
 
-    try {
-        const respuesta = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-    model: "gpt-4.1",
-    messages: [
-        { role: "system", content: "Sos Agustina, una asistente cordial." },
-        { role: "user", content: mensaje }
-    ]
-});
+    const texto = data.choices?.[0]?.message?.content ?? "No pude generar respuesta.";
 
-        const data = await respuesta.json();
-        const texto = data.choices?.[0]?.message?.content || "No pude generar respuesta.";
+    return res.status(200).json({ respuesta: texto });
 
-        res.status(200).json({ respuesta: texto });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Error interno en el servidor" });
-    }
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
 }
+
+
