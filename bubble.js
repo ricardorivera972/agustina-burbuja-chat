@@ -35,7 +35,7 @@ chatSend.addEventListener("click", async () => {
 
         const data = await respuesta.json();
 
-        addMessage("agustina", data.respuesta);
+        addMessage("agustina", data.mensaje);
     } catch (error) {
         addMessage("agustina", "Error al conectar con el servidor.");
     }
