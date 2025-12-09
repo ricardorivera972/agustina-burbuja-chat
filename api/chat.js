@@ -10,31 +10,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { mensaje } = req.body;
+    const mensaje = req.body;
 
-    // Llamada correcta al nuevo endpoint de OpenAI
-    const respuesta = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Llamada al nuevo endpoint de OpenAI (gpt-4.1)
+    const apiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1",
         messages: [
-          { role: "user", content: mensaje }
+          { role: "user", content: mensaje },
         ],
       }),
     });
 
-    const data = await respuesta.json();
+    const data = await apiRes.json();
 
-    if (!respuesta.ok) {
-      console.error("Error de OpenAI:", data);
-      return res.status(500).json({ error: "Error en OpenAI", detalle: data });
+    if (!apiRes.ok) {
+      console.error("Error API:", data);
+      return res.status(500).json({ error: "Error con OpenAI", detalle: data });
     }
 
-    const texto = data.choices?.[0]?.message?.content ?? "No pude generar respuesta.";
+    const texto = data.choices?.[0]?.message?.content || "No pude generar respuesta.";
 
     return res.status(200).json({ respuesta: texto });
 
@@ -43,5 +43,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Error interno del servidor" });
   }
 }
+
 
 
