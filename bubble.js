@@ -1,10 +1,10 @@
-// Elementos del chat
-const chatButton = document.getElementById("chat-button");
-const chatWindow = document.getElementById("chat-window");
-const chatClose = document.getElementById("chat-close");
-const chatSend = document.getElementById("chat-send");
-const chatInput = document.getElementById("chat-input");
-const chatMessages = document.getElementById("chat-messages");
+// Elementos UI
+const chatButton = document.getElementById("chatButton");
+const chatWindow = document.getElementById("chatWindow");
+const chatClose = document.getElementById("chatClose");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const chatSend = document.getElementById("chatSend");
 
 // Mostrar ventana
 chatButton.addEventListener("click", () => {
@@ -16,38 +16,29 @@ chatClose.addEventListener("click", () => {
     chatWindow.style.display = "none";
 });
 
-// Enviar mensaje al backend de OpenAI
+// Enviar mensaje
 chatSend.addEventListener("click", async () => {
-    const text = chatInput.value.trim();
-    if (!text) return;
+    const texto = chatInput.value.trim();
+    if (!texto) return;
 
     // Mostrar mensaje del usuario
-    addMessage("usuario", text);
+    chatMessages.innerHTML += `<div class="user-msg">${texto}</div>`;
     chatInput.value = "";
 
     try {
-        const respuesta = await fetch("https://agustina-burbuja-chat.vercel.app/api/chat", {
-
+        const request = await fetch("https://agustina-burbuja-chat.vercel.app/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mensaje: text })
+            body: JSON.stringify({ mensaje: texto })   // <<< ESTA ES LA CLAVE
         });
 
-        const data = await respuesta.json();
+        const data = await request.json();
+        const respuesta = data.respuesta || "Error al generar respuesta.";
 
-        addMessage("agustina", data.mensaje);
+        chatMessages.innerHTML += `<div class="bot-msg">${respuesta}</div>`;
+
     } catch (error) {
-        addMessage("agustina", "Error al conectar con el servidor.");
+        console.error("Error:", error);
+        chatMessages.innerHTML += `<div class="bot-msg">Error al conectar con el servidor.</div>`;
     }
 });
-
-// Función para agregar mensajes al chat
-function addMessage(remitente, texto) {
-    const burbuja = document.createElement("div");
-    burbuja.className = remitente === "usuario" ? "msg-user" : "msg-ai";
-    burbuja.textContent = texto;
-    chatMessages.appendChild(burbuja);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-   
