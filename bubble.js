@@ -1,44 +1,45 @@
-// Elementos UI
-const chatButton = document.getElementById("chatButton");
-const chatWindow = document.getElementById("chatWindow");
-const chatClose = document.getElementById("chatClose");
-const chatMessages = document.getElementById("chatMessages");
-const chatInput = document.getElementById("chatInput");
-const chatSend = document.getElementById("chatSend");
+document.addEventListener("DOMContentLoaded", function () {
 
-// Mostrar ventana
-chatButton.addEventListener("click", () => {
-    chatWindow.style.display = "flex";
-});
+    const chatButton = document.getElementById("chatButton");
+    const chatWindow = document.getElementById("chat-window");
+    const chatClose = document.getElementById("chat-close");
+    const chatSend = document.getElementById("chat-send");
+    const chatInput = document.getElementById("chat-input");
+    const chatMessages = document.getElementById("chat-messages");
 
-// Cerrar ventana
-chatClose.addEventListener("click", () => {
-    chatWindow.style.display = "none";
-});
+    if (!chatButton || !chatWindow || !chatClose || !chatSend || !chatInput || !chatMessages) {
+        console.error("Error: No se encontraron elementos del chat en el HTML");
+        return;
+    }
 
-// Enviar mensaje
-chatSend.addEventListener("click", async () => {
-    const texto = chatInput.value.trim();
-    if (!texto) return;
+    // Mostrar ventana del chat
+    chatButton.addEventListener("click", () => {
+        chatWindow.style.display = "block";
+    });
 
-    // Mostrar mensaje del usuario
-    chatMessages.innerHTML += `<div class="user-msg">${texto}</div>`;
-    chatInput.value = "";
+    // Cerrar ventana del chat
+    chatClose.addEventListener("click", () => {
+        chatWindow.style.display = "none";
+    });
 
-    try {
-        const request = await fetch("https://agustina-burbuja-chat.vercel.app/api/chat", {
+    // Enviar mensaje
+    chatSend.addEventListener("click", async () => {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        chatMessages.innerHTML += `<div class="user-message">${message}</div>`;
+        chatInput.value = "";
+
+        const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mensaje: texto })   // <<< ESTA ES LA CLAVE
+            body: JSON.stringify({ message })
         });
 
-        const data = await request.json();
-        const respuesta = data.respuesta || "Error al generar respuesta.";
+        const data = await response.json();
 
-        chatMessages.innerHTML += `<div class="bot-msg">${respuesta}</div>`;
+        chatMessages.innerHTML += `<div class="ai-message">${data.reply || "Error en la respuesta"}</div>`;
+    });
 
-    } catch (error) {
-        console.error("Error:", error);
-        chatMessages.innerHTML += `<div class="bot-msg">Error al conectar con el servidor.</div>`;
-    }
 });
+
