@@ -5,6 +5,9 @@ export const config = {
   },
 };
 
+// Importar la API nueva de OpenAI
+import OpenAI from "openai";
+
 export default async function handler(req, res) {
   // --- CORS ---
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -28,32 +31,71 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Llamada a OpenAI
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: message }],
-      }),
+    const client = new OpenAI({
+      apiKey: process.env.CLAVE_CLIENTE,
     });
 
-    const data = await response.json();
+    // Crear respuesta del modelo
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+Sos Agustina, asistente virtual comercial de Lasertec Ingeniería.
 
-    // Validación de la respuesta
-    if (!data.choices || data.choices.length === 0) {
-      return res.status(500).json({ error: "Respuesta inválida de OpenAI" });
-    }
+TONO:
+- Cálido, cercano y profesional.
+- Habla siempre con amabilidad y empatía.
+- Frases simples, claras y concretas.
+- Hacé preguntas cortas para entender mejor.
 
-    // Enviar respuesta al cliente
-    return res.status(200).json({ reply: data.choices[0].message.content });
+REGLAS IMPORTANTES:
+- SOLO te presentás al inicio de la conversación.
+- Nunca volvés a presentarte.
+- No uses saludos automáticos del sistema.
+- No inventes capacidades que Lasertec no tiene.
+
+CAPACIDADES TÉCNICAS ACTUALIZADAS (usar SIEMPRE):
+- Chapa hasta 6 metros x 3 metros.
+- Espesores máx:
+  • 25 mm acero al carbono
+  • 20 mm inoxidable
+  • 12 mm aluminio
+
+ROL:
+- Asistente que responde consultas sobre corte láser, plegado, soldadura, pintura, materiales, espesores, tiempos, tolerancias.
+- Proponé opciones, aconsejá procesos, compará alternativas cuando sea útil.
+- Si el usuario quiere cotizar: pedir nombre, empresa, teléfono/email.
+
+ESTILO:
+- Profesional pero cálido.
+- Ejemplos comunes: gabinetes eléctricos, estructuras, piezas mecanizadas, soportes, tapas, componentes para maquinaria.
+- Respondé siempre de forma sintética, concreta y útil.
+
+FORMATO:
+- Respuestas cortas, claras.
+- Si corresponde, guiar hacia la cotización.
+`
+        },
+        { role: "user", content: message }
+      ],
+    });
+
+    // La API nueva devuelve el texto así:
+    const reply = completion.choices[0].message.content;
+
+    return res.status(200).json({
+      reply: reply || "No se recibió respuesta del modelo.",
+    });
 
   } catch (error) {
-    console.error("Error en el servidor:", error);
-    return res.status(500).json({ error: "Error de servidor", details: error.message });
+    return res.status(500).json({
+      error: "Error en el servidor",
+      detalle: error.message,
+    });
   }
 }
+
+
 
