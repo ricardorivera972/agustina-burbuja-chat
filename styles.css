@@ -2,40 +2,52 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* BOTÓN FLOTANTE */
+/* =======================
+   BURBUJA REDONDA
+======================= */
 #chat-bubble {
   position: fixed;
   bottom: 20px;
   right: 20px;
+  width: 64px;
+  height: 64px;
   background: #4f6ef7;
-  color: #fff;
-  padding: 14px 18px;
-  border-radius: 24px;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  font-size: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   z-index: 9999;
 }
 
-/* CONTENEDOR CHAT */
+/* =======================
+   CONTENEDOR DEL CHAT
+======================= */
 #chat-container {
   position: fixed;
-  bottom: 80px;
+  bottom: 100px;
   right: 20px;
   width: 360px;
   height: 480px;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: #ffffff;
+  border: 1px solid #cccccc;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   z-index: 9999;
 }
 
+/* =======================
+   CABECERA
+======================= */
 .chat-header {
   background: #4f6ef7;
-  color: #fff;
+  color: #ffffff;
   padding: 10px;
+  font-weight: bold;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -44,11 +56,14 @@ body {
 #chat-close {
   background: none;
   border: none;
-  color: #fff;
+  color: #ffffff;
   font-size: 16px;
   cursor: pointer;
 }
 
+/* =======================
+   MENSAJES
+======================= */
 .chat-messages {
   flex: 1;
   padding: 10px;
@@ -58,37 +73,16 @@ body {
 
 .user-message {
   background: #d1e7ff;
-  padding: 8px;
+  padding: 8px 10px;
   border-radius: 8px;
   margin-bottom: 6px;
-  align-self: flex-end;
   max-width: 80%;
+  align-self: flex-end;
 }
 
 .ai-message {
-  background: #fff;
-  padding: 8px;
-  border-radius: 8px;
-  margin-bottom: 6px;
-  align-self: flex-start;
-  max-width: 80%;
-}
-
-.chat-input-area {
-  display: flex;
-  padding: 8px;
-  border-top: 1px solid #ccc;
-}
-
-#chat-input {
-  flex: 1;
-  resize: none;
-  padding: 6px;
-}
-
-#send-btn {
-  margin-left: 6px;
-}
+  background: #ffffff;
+  padding: 8px 10px
 
 
 
