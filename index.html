@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo de Agustina – chat burbuja</title>
-
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -12,29 +11,31 @@
   <h1>Demo de Agustina – chat burbuja</h1>
   <p>Esta página es sólo para probar el chat flotante.</p>
 
-  <!-- BOTÓN PARA ABRIR EL CHAT -->
-  <button id="chatButton">Hablar con Agustina</button>
+  <!-- BURBUJA / BOTÓN -->
+  <div id="chat-bubble" style="cursor:pointer;">
+    Hablar con Agustina
+  </div>
 
   <!-- CONTENEDOR DEL CHAT -->
-  <div class="chat-container" id="chatWindow" style="display:none;">
+  <div id="chat-container" style="display:none;">
     
     <div class="chat-header">
       <span>Agustina</span>
-      <button id="chatClose">X</button>
+      <button id="chat-close">X</button>
     </div>
 
-    <div class="chat-messages" id="chatMessages"></div>
+    <div id="chat-messages" class="chat-messages"></div>
 
     <div class="chat-input-area">
-      <input id="chatInput" type="text" placeholder="Escribe tu mensaje..." />
-      <button id="sendBtn">Enviar</button>
+      <textarea id="chat-input" placeholder="Escribí tu mensaje..."></textarea>
+      <button id="send-btn">Enviar</button>
     </div>
 
   </div>
 
   <!-- SCRIPT -->
   <script src="bubble.js"></script>
-
 </body>
 </html>
+
 
