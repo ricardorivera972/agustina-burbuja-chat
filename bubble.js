@@ -1,45 +1,54 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
+  const chatButton = document.getElementById("chat-button");
+  const chatWindow = document.getElementById("chat-window");
+  const chatMessages = document.getElementById("chat-messages");
+  const chatInput = document.getElementById("chat-input");
+  const sendButton = document.getElementById("send-button");
 
-    const chatButton = document.getElementById("chatButton");
-    const chatWindow = document.getElementById("chat-window");
-    const chatClose = document.getElementById("chat-close");
-    const chatSend = document.getElementById("chat-send");
-    const chatInput = document.getElementById("chat-input");
-    const chatMessages = document.getElementById("chat-messages");
+  // Abrir / cerrar burbuja
+  chatButton.addEventListener("click", () => {
+    chatWindow.classList.toggle("open");
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
 
-    if (!chatButton || !chatWindow || !chatClose || !chatSend || !chatInput || !chatMessages) {
-        console.error("Error: No se encontraron elementos del chat en el HTML");
-        return;
+  async function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    // Mensaje del usuario
+    chatMessages.innerHTML += `<div class="user-message">${message}</div>`;
+    chatInput.value = "";
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      const data = await response.json();
+
+      // Mensaje de Agustina
+      chatMessages.innerHTML += `<div class="ai-message">${data.reply}</div>`;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    } catch (error) {
+      chatMessages.innerHTML += `<div class="ai-message">Error de conexión. Intentá nuevamente.</div>`;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
+  }
 
-    // Mostrar ventana del chat
-    chatButton.addEventListener("click", () => {
-        chatWindow.style.display = "block";
-    });
+  // Enviar con botón
+  sendButton.addEventListener("click", sendMessage);
 
-    // Cerrar ventana del chat
-    chatClose.addEventListener("click", () => {
-        chatWindow.style.display = "none";
-    });
-
-    // Enviar mensaje
-    chatSend.addEventListener("click", async () => {
-        const message = chatInput.value.trim();
-        if (!message) return;
-
-        chatMessages.innerHTML += `<div class="user-message">${message}</div>`;
-        chatInput.value = "";
-
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message })
-        });
-
-        const data = await response.json();
-
-        chatMessages.innerHTML += `<div class="ai-message">${data.reply || "Error en la respuesta"}</div>`;
-    });
-
+  // Enviar con Enter
+  chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
 });
+
 
