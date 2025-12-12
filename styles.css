@@ -106,7 +106,9 @@ body {
   height: 520px;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* ← AGREGAR ESTA LÍNEA */
 }
+
 
 /* ÁREA DE MENSAJES (SCROLL) */
 .chat-messages {
