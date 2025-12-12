@@ -1,34 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const bubble = document.getElementById("chat-bubble");
+  const chat = document.getElementById("chat-container");
+  const closeBtn = document.getElementById("chat-close");
   const sendBtn = document.getElementById("send-btn");
   const input = document.getElementById("chat-input");
   const messages = document.getElementById("chat-messages");
-  const container = document.getElementById("chat-container");
 
   let presented = false;
 
-  // Presentación automática (segura)
-  window.presentAgustina = function () {
-    if (presented) return;
+  bubble.addEventListener("click", () => {
+    chat.style.display = "flex";
+    bubble.style.display = "none";
 
-    // Asegurar que el chat esté visible
-    container.style.display = "flex";
+    if (!presented) {
+      const intro = document.createElement("div");
+      intro.className = "ai-message";
+      intro.innerText =
+        "Hola, soy Agustina, tu asistente virtual de Lasertec Ingeniería. ¿En qué puedo ayudarte hoy?";
+      messages.appendChild(intro);
+      messages.scrollTop = messages.scrollHeight;
+      presented = true;
+    }
 
-    const intro = document.createElement("div");
-    intro.className = "ai-message";
-    intro.innerText =
-      "Hola, soy Agustina, tu asistente virtual de Lasertec Ingeniería. ¿En qué puedo ayudarte hoy?";
-    messages.appendChild(intro);
+    setTimeout(() => input.focus(), 100);
+  });
 
-    messages.scrollTop = messages.scrollHeight;
-    presented = true;
+  closeBtn.addEventListener("click", () => {
+    chat.style.display = "none";
+    bubble.style.display = "flex";
+  });
 
-    // Foco real en el input
-    setTimeout(() => {
-      input.focus();
-    }, 100);
-  };
-
-  // Enviar mensaje
   sendBtn.addEventListener("click", sendMessage);
 
   input.addEventListener("keydown", (e) => {
@@ -46,6 +47,31 @@ document.addEventListener("DOMContentLoaded", () => {
     user.className = "user-message";
     user.innerText = text;
     messages.appendChild(user);
+
+    input.value = "";
+    messages.scrollTop = messages.scrollHeight;
+
+    const typing = document.createElement("div");
+    typing.className = "ai-message";
+    typing.innerText = "Agustina está escribiendo...";
+    messages.appendChild(typing);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      typing.innerText = data.reply;
+    } catch {
+      typing.innerText = "Error de conexión.";
+    }
+
+    messages.scrollTop = messages.scrollHeight;
+  }
+});
+
 
 
 
