@@ -1,13 +1,12 @@
+import { OpenAI } from 'openai';  // Este es el módulo necesario
+
 // Habilitar CORS para permitir que el navegador reciba la respuesta
 export const config = {
   api: {
     bodyParser: true,
   },
 };
-
 // Importar la API nueva de OpenAI
-import OpenAI from "openai";
-
 export default async function handler(req, res) {
   // --- CORS ---
   res.setHeader("Access-Control-Allow-Origin", "*");
