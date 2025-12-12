@@ -11,34 +11,31 @@
   <h1>Demo Agustina</h1>
   <p>Prueba de chat burbuja</p>
 
-  <!-- BURBUJA FLOTANTE -->
-  <div
-    id="chat-bubble"
-    onclick="
-      document.getElementById('chat-container').style.display='flex';
-      this.style.display='none';
-      if (window.presentAgustina) window.presentAgustina();
-    "
-  >
-    💬
-  </div>
+  <!-- BURBUJA -->
+  <div id="chat-bubble">💬</div>
 
-  <!-- CONTENEDOR DEL CHAT -->
-  <div id="chat-container" style="display:none;">
+  <!-- CHAT -->
+  <div id="chat-container">
     <div class="chat-header">
       <span>Agustina</span>
-      <button
-        id="chat-close"
-        onclick="
-          document.getElementById('chat-container').style.display='none';
-          document.getElementById('chat-bubble').style.display='flex';
-        "
-      >
-        ✕
-      </button>
+      <button id="chat-close">✕</button>
     </div>
 
-    <div id="chat-messages" class="
+    <div id="chat-messages" class="chat-messages"></div>
+
+    <div class="chat-input-area">
+      <textarea
+        id="chat-input"
+        placeholder="Escribí tu mensaje..."
+      ></textarea>
+      <button id="send-btn">Enviar</button>
+    </div>
+  </div>
+
+  <script src="bubble.js"></script>
+</body>
+</html>
+
 
 
 
