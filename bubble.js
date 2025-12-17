@@ -6,7 +6,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("chat-input");
   const messagesDiv = document.getElementById("chat-messages");
 
-  if (!bubble || !chat || !closeBtn || !sendBtn || !input || !messagesDiv) {
+  // Modal formulario
+  const leadModal = document.getElementById("lead-modal");
+  const leadCancel = document.getElementById("lead-cancel");
+  const leadForm = document.getElementById("lead-form");
+
+  if (
+    !bubble ||
+    !chat ||
+    !closeBtn ||
+    !sendBtn ||
+    !input ||
+    !messagesDiv ||
+    !leadModal ||
+    !leadCancel ||
+    !leadForm
+  ) {
     console.error("Agustina: falta algún elemento del DOM");
     return;
   }
@@ -16,6 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const messages = [];
   let userMessageCount = 0;
+
+  /* ======================
+     Apertura / cierre chat
+     ====================== */
 
   bubble.addEventListener("click", () => {
     chat.style.display = "block";
@@ -46,6 +65,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  /* ======================
+     Utilidades
+     ====================== */
+
   function addMessage(role, text) {
     const div = document.createElement("div");
     div.className = role === "user" ? "user-message" : "ai-message";
@@ -53,6 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
+
+  /* ======================
+     CTA
+     ====================== */
 
   function showCTA() {
     if (ctaShown) return;
@@ -69,9 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
     ctaShown = true;
 
     document.getElementById("cta-btn").addEventListener("click", () => {
-      alert("Evaluación técnica solicitada. En el próximo paso conectamos el formulario.");
+      leadModal.classList.remove("hidden");
     });
   }
+
+  /* ======================
+     Envío de mensajes
+     ====================== */
 
   async function sendMessage() {
     const text = input.value.trim();
@@ -112,7 +143,27 @@ document.addEventListener("DOMContentLoaded", () => {
       typing.innerText = "Error de conexión. Intentá nuevamente.";
     }
   }
+
+  /* ======================
+     Formulario (solo UX)
+     ====================== */
+
+  leadCancel.addEventListener("click", () => {
+    leadModal.classList.add("hidden");
+  });
+
+  leadForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    alert(
+      "Gracias. Un técnico comercial va a revisar tu pedido y contactarte."
+    );
+
+    leadModal.classList.add("hidden");
+    leadForm.reset();
+  });
 });
+
 
 
 
