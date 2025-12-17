@@ -12,12 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let presented = false;
-  let ctaShown = false; // 👈 control del CTA
+  let ctaShown = false;
 
-  // Historial que la API espera
   const messages = [];
+  let userMessageCount = 0;
 
-  // Abrir chat
   bubble.addEventListener("click", () => {
     chat.style.display = "block";
     bubble.style.display = "none";
@@ -33,13 +32,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => input.focus(), 100);
   });
 
-  // Cerrar chat
   closeBtn.addEventListener("click", () => {
     chat.style.display = "none";
     bubble.style.display = "block";
   });
 
-  // Enviar mensaje
   sendBtn.addEventListener("click", sendMessage);
 
   input.addEventListener("keydown", (e) => {
@@ -57,15 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 
-  // 👉 CTA controlado por UI
   function showCTA() {
     if (ctaShown) return;
 
     const cta = document.createElement("div");
     cta.className = "cta-box";
     cta.innerHTML = `
-      <p><strong>¿Querés que un técnico comercial revise tu pedido?</strong></p>
-      <button id="cta-btn">Solicitar cotización</button>
+      <p><strong>¿Querés que un técnico comercial evalúe técnicamente tu pedido?</strong></p>
+      <button id="cta-btn">Solicitar evaluación técnica</button>
     `;
 
     messagesDiv.appendChild(cta);
@@ -73,13 +69,15 @@ document.addEventListener("DOMContentLoaded", () => {
     ctaShown = true;
 
     document.getElementById("cta-btn").addEventListener("click", () => {
-      alert("CTA clickeado. En el próximo paso conectamos el formulario.");
+      alert("Evaluación técnica solicitada. En el próximo paso conectamos el formulario.");
     });
   }
 
   async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
+
+    userMessageCount++;
 
     addMessage("user", text);
     messages.push({ role: "user", content: text });
@@ -105,8 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      // 👇 acá vive la lógica del CTA
-      if (data.intent === true) {
+      // CTA: solo con intención + conversación mínima
+      if (data.intent === true && userMessageCount >= 2) {
         showCTA();
       }
 
@@ -115,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+
 
 
 
