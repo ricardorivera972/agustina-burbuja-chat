@@ -90,6 +90,87 @@ body {
   margin-left: 6px;
 }
 
+/* ============================= */
+/* MODAL – FORMULARIO LEAD */
+/* ============================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+#lead-form input,
+#lead-form textarea {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+#lead-form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.modal-actions button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.modal-actions button[type="submit"] {
+  background: #4f6ef7;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.modal-actions button[type="submit"]:hover {
+  background: #3d5be0;
+}
+
+.modal-actions button#lead-cancel {
+  background: #eee;
+  border: none;
+  border-radius: 4px;
+}
+
+
 
 
 
