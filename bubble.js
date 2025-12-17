@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let presented = false;
+  let ctaShown = false; // 👈 control del CTA
 
   // Historial que la API espera
   const messages = [];
@@ -56,6 +57,26 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 
+  // 👉 CTA controlado por UI
+  function showCTA() {
+    if (ctaShown) return;
+
+    const cta = document.createElement("div");
+    cta.className = "cta-box";
+    cta.innerHTML = `
+      <p><strong>¿Querés que un técnico comercial revise tu pedido?</strong></p>
+      <button id="cta-btn">Solicitar cotización</button>
+    `;
+
+    messagesDiv.appendChild(cta);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    ctaShown = true;
+
+    document.getElementById("cta-btn").addEventListener("click", () => {
+      alert("CTA clickeado. En el próximo paso conectamos el formulario.");
+    });
+  }
+
   async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
@@ -84,13 +105,17 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      // data.intent queda listo para CTA (más adelante)
+      // 👇 acá vive la lógica del CTA
+      if (data.intent === true) {
+        showCTA();
+      }
 
     } catch (err) {
       typing.innerText = "Error de conexión. Intentá nuevamente.";
     }
   }
 });
+
 
 
 
