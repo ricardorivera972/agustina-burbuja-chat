@@ -4,21 +4,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = document.getElementById("chat-close");
   const sendBtn = document.getElementById("send-btn");
   const input = document.getElementById("chat-input");
-  const messages = document.getElementById("chat-messages");
+  const messagesDiv = document.getElementById("chat-messages");
 
   let presented = false;
+
+  // Historial de conversación (clave)
+  const messages = [];
 
   bubble.addEventListener("click", () => {
     chat.style.display = "flex";
     bubble.style.display = "none";
 
     if (!presented) {
-      const intro = document.createElement("div");
-      intro.className = "ai-message";
-      intro.innerText =
-        "Hola, soy Agustina, tu asistente virtual de Lasertec Ingeniería. ¿En qué puedo ayudarte hoy?";
-      messages.appendChild(intro);
-      messages.scrollTop = messages.scrollHeight;
+      addMessage(
+        "ai",
+        "Hola, soy Agustina, tu asistente virtual de Lasertec Ingeniería. ¿En qué puedo ayudarte hoy?"
+      );
       presented = true;
     }
 
@@ -39,38 +40,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  function addMessage(role, text) {
+    const div = document.createElement("div");
+    div.className = role === "user" ? "user-message" : "ai-message";
+    div.innerText = text;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
   async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    const user = document.createElement("div");
-    user.className = "user-message";
-    user.innerText = text;
-    messages.appendChild(user);
-
+    addMessage("user", text);
+    messages.push({ role: "user", content: text });
     input.value = "";
-    messages.scrollTop = messages.scrollHeight;
 
     const typing = document.createElement("div");
     typing.className = "ai-message";
     typing.innerText = "Agustina está escribiendo...";
-    messages.appendChild(typing);
+    messagesDiv.appendChild(typing);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
-      const data = await res.json();
-      typing.innerText = data.reply;
-    } catch {
-      typing.innerText = "Error de conexión.";
-    }
+      const res = await fetch(
 
-    messages.scrollTop = messages.scrollHeight;
-  }
-});
 
 
 
