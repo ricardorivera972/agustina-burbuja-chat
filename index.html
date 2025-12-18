@@ -32,7 +32,10 @@
     </div>
   </div>
 
-  <!-- FORMULARIO MODAL – EVALUACIÓN TÉCNICA -->
+  <!-- ===============================
+       FORMULARIO MODAL – EVALUACIÓN TÉCNICA
+       (se abre desde el CTA)
+       =============================== -->
   <div id="lead-modal" class="modal hidden">
     <div class="modal-content">
       <h3>Evaluación técnica del pedido</h3>
@@ -44,6 +47,7 @@
         <input
           type="text"
           id="lead-name"
+          name="nombre"
           placeholder="Nombre y apellido"
           required
         />
@@ -51,6 +55,7 @@
         <input
           type="text"
           id="lead-company"
+          name="empresa"
           placeholder="Empresa"
           required
         />
@@ -58,6 +63,7 @@
         <input
           type="email"
           id="lead-email"
+          name="email"
           placeholder="Email"
           required
         />
@@ -65,18 +71,25 @@
         <input
           type="tel"
           id="lead-phone"
+          name="telefono"
           placeholder="Teléfono"
           required
         />
 
         <textarea
           id="lead-notes"
+          name="comentarios"
           placeholder="Comentario técnico adicional (opcional)"
         ></textarea>
 
         <div class="modal-actions">
-          <button type="button" id="lead-cancel">Cancelar</button>
-          <button type="submit">Enviar para evaluación</button>
+          <button type="button" id="lead-cancel">
+            Cancelar
+          </button>
+
+          <button type="submit" id="lead-submit">
+            Enviar para evaluación
+          </button>
         </div>
       </form>
     </div>
@@ -85,6 +98,7 @@
   <script src="bubble.js"></script>
 </body>
 </html>
+
 
 
 
