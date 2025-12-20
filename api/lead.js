@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   const WEBHOOK_URL =
-    "https://script.google.com/macros/s/AKfycbzr7dN6DwP3FnWgnIzcFAFehEDrQQ-bpuUaJm_HydCc-CbjE5hWx8pTezERWpzYqKGq/exec";
+    "https://script.google.com/macros/s/AKfycby79cuF2hW-CWk-CFt_u7FRv_wwehD9v3Q8w5ygbZur-VrRM7B9VkBIT0pclyQJpvBo/exec";
 
   try {
     const payload = req.body;
@@ -22,19 +22,14 @@ export default async function handler(req, res) {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(payload),
-      redirect: "follow"
+      body: JSON.stringify(payload)
     });
-
-    const text = await googleResponse.text();
 
     if (!googleResponse.ok) {
-      throw new Error(`Google respondió ${googleResponse.status}`);
+      throw new Error("Error enviando a Google");
     }
 
-    return res.status(200).json({
-      ok: true
-    });
+    return res.status(200).json({ ok: true });
 
   } catch (error) {
     return res.status(500).json({
@@ -43,6 +38,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
