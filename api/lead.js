@@ -7,6 +7,7 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
+  
 
   // 🔴 WEBHOOK NUEVO (EL QUE ME PASASTE)
   const WEBHOOK_URL =
