@@ -18,27 +18,33 @@ export default async function handler(req, res) {
   try {
     const payload = req.body;
 
-    // Google Apps Script funciona MUCHO mejor con texto plano
-    const response = await fetch(WEBHOOK_URL, {
+    const googleResponse = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "text/plain;charset=utf-8",
+        "Content-Type": "text/plain;charset=utf-8"
       },
       body: JSON.stringify(payload),
+      redirect: "follow"
     });
 
-    const text = await response.text();
+    const text = await googleResponse.text();
+
+    if (!googleResponse.ok) {
+      throw new Error(`Google respondió ${googleResponse.status}`);
+    }
 
     return res.status(200).json({
       ok: true,
-      google_status: response.status,
-      google_response: text,
+      google_status: googleResponse.status,
+      google_response: text
     });
+
   } catch (error) {
     return res.status(500).json({
       ok: false,
-      error: error.message || "Error desconocido",
+      error: error.message || "Error desconocido"
     });
   }
 }
+
 
