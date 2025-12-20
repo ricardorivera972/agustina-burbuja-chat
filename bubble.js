@@ -32,12 +32,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const messages = [];
   let userMessageCount = 0;
 
+  const WEBHOOK_URL =
+    "https://script.google.com/macros/s/AKfycbzr7dN6DwP3FnWgnIzcFAFehEDrQQ-bpuUaJm_HydCc-CbjE5hWx8pTezERWpzYqKGq/exec";
+
   /* ======================
      Apertura / cierre chat
      ====================== */
 
   bubble.addEventListener("click", () => {
-    chat.style.display = "flex";   // ✅ FIX CLAVE
+    chat.style.display = "flex";
     bubble.style.display = "none";
 
     if (!presented) {
@@ -79,6 +82,13 @@ document.addEventListener("DOMContentLoaded", () => {
       top: messagesDiv.scrollHeight,
       behavior: "smooth"
     });
+  }
+
+  function buildChatSummary() {
+    return messages
+      .filter(m => m.role === "user")
+      .map(m => `- ${m.content}`)
+      .join("\n");
   }
 
   /* ======================
@@ -146,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      // CTA: solo con intención + conversación mínima
       if (data.intent === true && userMessageCount >= 2) {
         showCTA();
       }
@@ -157,24 +166,47 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
-     Formulario (solo UX)
+     Formulario → Webhook
      ====================== */
 
   leadCancel.addEventListener("click", () => {
     leadModal.classList.add("hidden");
   });
 
-  leadForm.addEventListener("submit", (e) => {
+  leadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    alert(
-      "Gracias. Un técnico comercial va a revisar tu pedido y contactarte."
-    );
+    const payload = {
+      nombre: document.getElementById("lead-name").value,
+      empresa: document.getElementById("lead-company").value,
+      email: document.getElementById("lead-email").value,
+      telefono: document.getElementById("lead-phone").value,
+      comentarios: document.getElementById("lead-notes").value,
+      resumen_chat: buildChatSummary(),
+      origen: "Chat Agustina Web",
+      fecha: new Date().toISOString()
+    };
 
-    leadModal.classList.add("hidden");
-    leadForm.reset();
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      alert(
+        "Gracias. Un técnico comercial va a revisar tu pedido y contactarte."
+      );
+
+      leadModal.classList.add("hidden");
+      leadForm.reset();
+
+    } catch (err) {
+      alert("Hubo un error al enviar el pedido. Intentá nuevamente.");
+    }
   });
 });
+
 
 
 
