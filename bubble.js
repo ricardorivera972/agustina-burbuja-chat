@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
      ====================== */
 
   bubble.addEventListener("click", () => {
-    chat.style.display = "block";
+    chat.style.display = "flex";   // ✅ FIX CLAVE
     bubble.style.display = "none";
 
     if (!presented) {
@@ -74,7 +74,11 @@ document.addEventListener("DOMContentLoaded", () => {
     div.className = role === "user" ? "user-message" : "ai-message";
     div.innerText = text;
     messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    messagesDiv.scrollTo({
+      top: messagesDiv.scrollHeight,
+      behavior: "smooth"
+    });
   }
 
   /* ======================
@@ -92,7 +96,11 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     messagesDiv.appendChild(cta);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    messagesDiv.scrollTo({
+      top: messagesDiv.scrollHeight,
+      behavior: "smooth"
+    });
+
     ctaShown = true;
 
     document.getElementById("cta-btn").addEventListener("click", () => {
@@ -118,7 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
     typing.className = "ai-message";
     typing.innerText = "Agustina está escribiendo...";
     messagesDiv.appendChild(typing);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    messagesDiv.scrollTo({
+      top: messagesDiv.scrollHeight,
+      behavior: "smooth"
+    });
 
     try {
       const res = await fetch("/api/chat", {
@@ -163,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     leadForm.reset();
   });
 });
+
 
 
 
