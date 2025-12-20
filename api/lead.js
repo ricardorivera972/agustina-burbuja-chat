@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   // 🔴 WEBHOOK NUEVO (EL QUE ME PASASTE)
   const WEBHOOK_URL =
-    "https://script.google.com/macros/s/AKfycby79cuF2hW-CWk-CFt_u7FRv_wwehD9v3Q8w5ygbZur-VrRM7B9VkBIT0pclyQJpvBo/exec";
+    "https://script.google.com/macros/s/AKfycby2KYXCITot8J6zcukccbK2C6CvgXBYhwvzamZHR_sRHOYYQ0JEFyL76MtHWnMo3UQ/exec";
 
   // ✅ Permite test desde navegador: /api/lead?test=1
   const payload =
