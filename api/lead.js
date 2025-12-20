@@ -4,12 +4,15 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
+  // 🔴 WEBHOOK NUEVO (EL QUE ME PASASTE)
   const WEBHOOK_URL =
     "https://script.google.com/macros/s/AKfycby79cuF2hW-CWk-CFt_u7FRv_wwehD9v3Q8w5ygbZur-VrRM7B9VkBIT0pclyQJpvBo/exec";
 
-  // ✅ Esto permite test sin formulario: abrís /api/lead?test=1
+  // ✅ Permite test desde navegador: /api/lead?test=1
   const payload =
     req.method === "GET"
       ? {
@@ -35,10 +38,6 @@ export default async function handler(req, res) {
 
     const text = await googleResponse.text();
 
-    // ✅ Si Google te manda HTML (login/permiso), lo detectamos y te lo mostramos
-    const looksLikeHtml =
-      text.trim().startsWith("<!DOCTYPE html") || text.toLowerCase().includes("<html");
-
     if (!googleResponse.ok) {
       return res.status(500).json({
         ok: false,
@@ -48,16 +47,6 @@ export default async function handler(req, res) {
       });
     }
 
-    if (looksLikeHtml) {
-      return res.status(500).json({
-        ok: false,
-        where: "google_returned_html",
-        status: googleResponse.status,
-        text: text.slice(0, 500)
-      });
-    }
-
-    // ✅ Apps Script tuyo devuelve JSON: {"ok":true} o {"ok":false,"error":"..."}
     let parsed = null;
     try {
       parsed = JSON.parse(text);
@@ -67,7 +56,6 @@ export default async function handler(req, res) {
       return res.status(500).json({
         ok: false,
         where: "apps_script_not_ok",
-        status: googleResponse.status,
         text: text.slice(0, 500)
       });
     }
@@ -82,6 +70,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
