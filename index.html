@@ -34,16 +34,17 @@
 
   <!-- ===============================
        FORMULARIO MODAL – EVALUACIÓN TÉCNICA
-       (se abre desde el CTA)
        =============================== -->
   <div id="lead-modal" class="modal hidden">
     <div class="modal-content">
       <h3>Evaluación técnica del pedido</h3>
       <p class="modal-subtitle">
-        Un técnico comercial va a revisar tu pedido y contactarte.
+        Un técnico comercial va a analizar tu requerimiento y contactarte.
       </p>
 
       <form id="lead-form">
+
+        <!-- Datos visibles -->
         <input
           type="text"
           id="lead-name"
@@ -79,8 +80,14 @@
         <textarea
           id="lead-notes"
           name="comentarios"
-          placeholder="Comentario técnico adicional (opcional)"
+          placeholder="Descripción técnica del requerimiento (opcional)"
         ></textarea>
+
+        <!-- Campos ocultos para uso interno -->
+        <input type="hidden" name="origen" value="Chat Agustina Web" />
+        <input type="hidden" name="estado" value="Nuevo" />
+        <input type="hidden" name="dispositivo" id="lead-device" />
+        <input type="hidden" name="fecha_hora" id="lead-datetime" />
 
         <div class="modal-actions">
           <button type="button" id="lead-cancel">
@@ -98,6 +105,7 @@
   <script src="bubble.js"></script>
 </body>
 </html>
+
 
 
 
