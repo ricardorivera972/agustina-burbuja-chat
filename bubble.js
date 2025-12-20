@@ -84,6 +84,20 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("\n");
   }
 
+  function userAskedForPrice(text) {
+    const keywords = [
+      "precio",
+      "costo",
+      "vale",
+      "cotización",
+      "cotizar",
+      "cuánto",
+      "presupuesto"
+    ];
+    const t = text.toLowerCase();
+    return keywords.some(k => t.includes(k));
+  }
+
   /* ======================
      CTA
      ====================== */
@@ -116,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!text) return;
 
     userMessageCount++;
+
     addMessage("user", text);
     messages.push({ role: "user", content: text });
     input.value = "";
@@ -139,7 +154,12 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      if (data.intent === true && userMessageCount >= 2) {
+      const priceIntent = userAskedForPrice(text);
+
+      if (
+        (data.intent === true || priceIntent) &&
+        userMessageCount >= 2
+      ) {
         showCTA();
       }
     } catch (err) {
@@ -158,10 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
   leadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // completar campos ocultos
-    document.getElementById("lead-device").value = navigator.userAgent;
-    document.getElementById("lead-datetime").value = new Date().toISOString();
-
     const payload = {
       nombre: document.getElementById("lead-name").value,
       empresa: document.getElementById("lead-company").value,
@@ -170,8 +186,8 @@ document.addEventListener("DOMContentLoaded", () => {
       comentarios: document.getElementById("lead-notes").value,
       resumen_chat: buildChatSummary(),
       origen: "Chat Agustina Web",
-      fecha_hora: document.getElementById("lead-datetime").value,
-      dispositivo: document.getElementById("lead-device").value
+      fecha_hora: new Date().toISOString(),
+      dispositivo: navigator.userAgent
     };
 
     try {
@@ -181,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error("Error backend");
+      if (!res.ok) throw new Error("Backend error");
 
       alert("Gracias. Un técnico comercial va a revisar tu pedido y contactarte.");
 
@@ -192,6 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
