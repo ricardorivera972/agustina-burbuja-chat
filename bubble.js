@@ -32,9 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const messages = [];
   let userMessageCount = 0;
 
-  const WEBHOOK_URL =
-    "https://script.google.com/macros/s/AKfycbzr7dN6DwP3FnWgnIzcFAFehEDrQQ-bpuUaJm_HydCc-CbjE5hWx8pTezERWpzYqKGq/exec";
-
   /* ======================
      Apertura / cierre chat
      ====================== */
@@ -77,11 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
     div.className = role === "user" ? "user-message" : "ai-message";
     div.innerText = text;
     messagesDiv.appendChild(div);
-
-    messagesDiv.scrollTo({
-      top: messagesDiv.scrollHeight,
-      behavior: "smooth"
-    });
+    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
   }
 
   function buildChatSummary() {
@@ -106,11 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     messagesDiv.appendChild(cta);
-    messagesDiv.scrollTo({
-      top: messagesDiv.scrollHeight,
-      behavior: "smooth"
-    });
-
+    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
     ctaShown = true;
 
     document.getElementById("cta-btn").addEventListener("click", () => {
@@ -127,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!text) return;
 
     userMessageCount++;
-
     addMessage("user", text);
     messages.push({ role: "user", content: text });
     input.value = "";
@@ -136,11 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     typing.className = "ai-message";
     typing.innerText = "Agustina está escribiendo...";
     messagesDiv.appendChild(typing);
-
-    messagesDiv.scrollTo({
-      top: messagesDiv.scrollHeight,
-      behavior: "smooth"
-    });
+    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
 
     try {
       const res = await fetch("/api/chat", {
@@ -150,7 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
-
       typing.remove();
 
       addMessage("assistant", data.reply);
@@ -159,14 +142,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.intent === true && userMessageCount >= 2) {
         showCTA();
       }
-
     } catch (err) {
       typing.innerText = "Error de conexión. Intentá nuevamente.";
     }
   }
 
   /* ======================
-     Formulario → Webhook
+     Formulario → Vercel API
      ====================== */
 
   leadCancel.addEventListener("click", () => {
@@ -176,6 +158,10 @@ document.addEventListener("DOMContentLoaded", () => {
   leadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // completar campos ocultos
+    document.getElementById("lead-device").value = navigator.userAgent;
+    document.getElementById("lead-datetime").value = new Date().toISOString();
+
     const payload = {
       nombre: document.getElementById("lead-name").value,
       empresa: document.getElementById("lead-company").value,
@@ -184,28 +170,29 @@ document.addEventListener("DOMContentLoaded", () => {
       comentarios: document.getElementById("lead-notes").value,
       resumen_chat: buildChatSummary(),
       origen: "Chat Agustina Web",
-      fecha: new Date().toISOString()
+      fecha_hora: document.getElementById("lead-datetime").value,
+      dispositivo: document.getElementById("lead-device").value
     };
 
     try {
-      await fetch(WEBHOOK_URL, {
+      const res = await fetch("/api/lead", {
         method: "POST",
-        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
-      alert(
-        "Gracias. Un técnico comercial va a revisar tu pedido y contactarte."
-      );
+      if (!res.ok) throw new Error("Error backend");
+
+      alert("Gracias. Un técnico comercial va a revisar tu pedido y contactarte.");
 
       leadModal.classList.add("hidden");
       leadForm.reset();
-
     } catch (err) {
       alert("Hubo un error al enviar el pedido. Intentá nuevamente.");
     }
   });
 });
+
 
 
 
