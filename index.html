@@ -4,107 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agustina – Chat Burbuja</title>
-  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
   <h1>Demo Agustina</h1>
   <p>Prueba de chat burbuja</p>
 
-  <!-- BURBUJA -->
-  <div id="chat-bubble">💬</div>
+  <!-- EMBED OFICIAL PICAXE -->
+  <div id="deployment-af70c490-e99a-4849-99cb-d4272deb52b9"></div>
+  <script src="https://studio.pickaxe.co/api/embed/bundle.js" defer></script>
+  <!-- FIN EMBED -->
 
-  <!-- CHAT -->
-  <div id="chat-container">
-    <div class="chat-header">
-      <span>Agustina</span>
-      <button id="chat-close">✕</button>
-    </div>
-
-    <div id="chat-messages" class="chat-messages"></div>
-
-    <div class="chat-input-area">
-      <textarea
-        id="chat-input"
-        placeholder="Escribí tu mensaje..."
-      ></textarea>
-      <button id="send-btn">Enviar</button>
-    </div>
-  </div>
-
-  <!-- ===============================
-       FORMULARIO MODAL – EVALUACIÓN TÉCNICA
-       =============================== -->
-  <div id="lead-modal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Evaluación técnica del pedido</h3>
-      <p class="modal-subtitle">
-        Un técnico comercial va a analizar tu requerimiento y contactarte.
-      </p>
-
-      <form id="lead-form">
-
-        <!-- Datos visibles -->
-        <input
-          type="text"
-          id="lead-name"
-          name="nombre"
-          placeholder="Nombre y apellido"
-          required
-        />
-
-        <input
-          type="text"
-          id="lead-company"
-          name="empresa"
-          placeholder="Empresa"
-          required
-        />
-
-        <input
-          type="email"
-          id="lead-email"
-          name="email"
-          placeholder="Email"
-          required
-        />
-
-        <input
-          type="tel"
-          id="lead-phone"
-          name="telefono"
-          placeholder="Teléfono"
-          required
-        />
-
-        <textarea
-          id="lead-notes"
-          name="comentarios"
-          placeholder="Descripción técnica del requerimiento (opcional)"
-        ></textarea>
-
-        <!-- Campos ocultos para uso interno -->
-        <input type="hidden" name="origen" value="Chat Agustina Web" />
-        <input type="hidden" name="estado" value="Nuevo" />
-        <input type="hidden" name="dispositivo" id="lead-device" />
-        <input type="hidden" name="fecha_hora" id="lead-datetime" />
-
-        <div class="modal-actions">
-          <button type="button" id="lead-cancel">
-            Cancelar
-          </button>
-
-          <button type="submit" id="lead-submit">
-            Enviar para evaluación
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script src="bubble.js"></script>
 </body>
 </html>
+
 
 
 
