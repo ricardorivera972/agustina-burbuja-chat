@@ -171,7 +171,8 @@ document.addEventListener("DOMContentLoaded", () => {
       resumen_chat: buildChatSummary(),
       origen: "Chat Agustina Web",
       fecha_hora: new Date().toISOString(),
-      dispositivo: navigator.userAgent
+      dispositivo: navigator.userAgent,
+      test: "ok" // 👈 agregado para asegurar que llegue algo al webhook
     };
 
     try {
@@ -192,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
