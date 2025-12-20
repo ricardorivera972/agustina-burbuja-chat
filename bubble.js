@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        mode: "no-cors",
         body: JSON.stringify(payload)
       });
 
@@ -206,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
