@@ -1,11 +1,16 @@
 export default async function handler(req, res) {
-  // CORS (por si en algún momento lo llamás desde otro dominio)
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   const WEBHOOK_URL =
     "https://script.google.com/macros/s/AKfycbzr7dN6DwP3FnWgnIzcFAFehEDrQQ-bpuUaJm_HydCc-CbjE5hWx8pTezERWpzYqKGq/exec";
@@ -13,26 +18,27 @@ export default async function handler(req, res) {
   try {
     const payload = req.body;
 
-    const r = await fetch(WEBHOOK_URL, {
+    // Google Apps Script funciona MUCHO mejor con texto plano
+    const response = await fetch(WEBHOOK_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
       body: JSON.stringify(payload),
-      redirect: "follow",
     });
 
-    // Apps Script a veces responde 200 aunque no devuelva JSON válido.
-    // Igual devolvemos OK si llegó.
-    const text = await r.text().catch(() => "");
+    const text = await response.text();
 
     return res.status(200).json({
       ok: true,
-      webhook_status: r.status,
-      webhook_response: text?.slice(0, 200) || "",
+      google_status: response.status,
+      google_response: text,
     });
-  } catch (err) {
+  } catch (error) {
     return res.status(500).json({
       ok: false,
-      error: err?.message || "Unknown error",
+      error: error.message || "Error desconocido",
     });
   }
 }
+
