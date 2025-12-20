@@ -6,21 +6,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("chat-input");
   const messagesDiv = document.getElementById("chat-messages");
 
-  // Modal formulario
   const leadModal = document.getElementById("lead-modal");
   const leadCancel = document.getElementById("lead-cancel");
   const leadForm = document.getElementById("lead-form");
 
   if (
-    !bubble ||
-    !chat ||
-    !closeBtn ||
-    !sendBtn ||
-    !input ||
-    !messagesDiv ||
-    !leadModal ||
-    !leadCancel ||
-    !leadForm
+    !bubble || !chat || !closeBtn || !sendBtn ||
+    !input || !messagesDiv || !leadModal ||
+    !leadCancel || !leadForm
   ) {
     console.error("Agustina: falta algún elemento del DOM");
     return;
@@ -28,9 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let presented = false;
   let ctaShown = false;
-
-  const messages = [];
   let userMessageCount = 0;
+  const messages = [];
 
   /* ======================
      Apertura / cierre chat
@@ -77,25 +69,20 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
   }
 
+  function hasCommercialKeywords(text) {
+    const keywords = [
+      "precio", "cuanto", "cuánto", "cuesta",
+      "costo", "cotización", "cotizar", "valor"
+    ];
+    const lower = text.toLowerCase();
+    return keywords.some(k => lower.includes(k));
+  }
+
   function buildChatSummary() {
     return messages
       .filter(m => m.role === "user")
       .map(m => `- ${m.content}`)
       .join("\n");
-  }
-
-  function userAskedForPrice(text) {
-    const keywords = [
-      "precio",
-      "costo",
-      "vale",
-      "cotización",
-      "cotizar",
-      "cuánto",
-      "presupuesto"
-    ];
-    const t = text.toLowerCase();
-    return keywords.some(k => t.includes(k));
   }
 
   /* ======================
@@ -130,7 +117,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!text) return;
 
     userMessageCount++;
-
     addMessage("user", text);
     messages.push({ role: "user", content: text });
     input.value = "";
@@ -154,21 +140,19 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      const priceIntent = userAskedForPrice(text);
+      const localIntent = hasCommercialKeywords(text);
 
-      if (
-        (data.intent === true || priceIntent) &&
-        userMessageCount >= 2
-      ) {
+      if ((data.intent === true || localIntent) && userMessageCount >= 2) {
         showCTA();
       }
+
     } catch (err) {
       typing.innerText = "Error de conexión. Intentá nuevamente.";
     }
   }
 
   /* ======================
-     Formulario → Vercel API
+     Formulario → API Lead
      ====================== */
 
   leadCancel.addEventListener("click", () => {
@@ -197,12 +181,12 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error("Backend error");
+      if (!res.ok) throw new Error("Error backend");
 
       alert("Gracias. Un técnico comercial va a revisar tu pedido y contactarte.");
-
       leadModal.classList.add("hidden");
       leadForm.reset();
+
     } catch (err) {
       alert("Hubo un error al enviar el pedido. Intentá nuevamente.");
     }
