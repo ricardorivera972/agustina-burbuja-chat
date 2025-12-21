@@ -25,14 +25,76 @@ document.addEventListener("DOMContentLoaded", () => {
   const messages = [];
 
   // ======================
-  // Datos técnicos a completar
+  // Datos técnicos
   // ======================
   let industria = "";
   let tipoTrabajo = "";
   let plazo = "";
 
   /* ======================
-     Apertura / cierre chat
+     Utilidades detección
+     ====================== */
+
+  function isQuestion(text) {
+    return text.includes("?") || text.startsWith("cuál") || text.startsWith("cuanto");
+  }
+
+  function detectIndustria(text) {
+    const t = text.toLowerCase();
+    const keywords = ["industria", "aplicación", "sector", "se usa en", "va para"];
+    const materialWords = ["aisi", "acero", "inox", "aluminio", "chapa"];
+
+    if (materialWords.some(w => t.includes(w))) return null;
+    if (keywords.some(k => t.includes(k))) return text;
+
+    return null;
+  }
+
+  function detectTipoTrabajo(text) {
+    const t = text.toLowerCase();
+    if (isQuestion(t)) return null;
+
+    const trabajos = [
+      "corte", "láser", "laser", "plegado",
+      "soldadura", "pintura", "mecanizado"
+    ];
+
+    if (trabajos.some(w => t.includes(w))) return text;
+    return null;
+  }
+
+  function detectPlazo(text) {
+    const t = text.toLowerCase();
+    const palabras = [
+      "día", "días", "semana", "semanas",
+      "urgente", "para", "fecha", "sin apuro"
+    ];
+
+    if (palabras.some(w => t.includes(w))) return text;
+    return null;
+  }
+
+  function buildChatSummary() {
+    let resumen = "Solicitud recibida desde el chat web.\n\n";
+
+    if (tipoTrabajo) resumen += `Trabajo requerido: ${tipoTrabajo}.\n`;
+    if (industria) resumen += `Aplicación / industria: ${industria}.\n`;
+    if (plazo) resumen += `Plazo estimado: ${plazo}.\n`;
+
+    resumen += "\nMensajes relevantes del cliente:\n";
+
+    messages
+      .filter(m => m.role === "user")
+      .slice(-5)
+      .forEach(m => {
+        resumen += `- ${m.content}\n`;
+      });
+
+    return resumen;
+  }
+
+  /* ======================
+     Apertura / cierre
      ====================== */
 
   bubble.addEventListener("click", () => {
@@ -65,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ======================
-     Utilidades
+     UI
      ====================== */
 
   function addMessage(role, text) {
@@ -78,31 +140,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function hasCommercialKeywords(text) {
     const keywords = [
-      "precio", "cuanto", "cuánto", "cuesta",
-      "costo", "cotización", "cotizar", "valor"
+      "precio", "cuanto", "cuánto",
+      "cotización", "cotizar", "valor"
     ];
     const lower = text.toLowerCase();
     return keywords.some(k => lower.includes(k));
   }
-
-  function buildChatSummary() {
-    let resumen = "Intercambio con potencial cliente.\n\n";
-    messages
-      .filter(m => m.role === "user")
-      .forEach(m => {
-        resumen += `- ${m.content}\n`;
-      });
-
-    if (industria) resumen += `\nIndustria / aplicación: ${industria}`;
-    if (tipoTrabajo) resumen += `\nTipo de trabajo: ${tipoTrabajo}`;
-    if (plazo) resumen += `\nPlazo estimado: ${plazo}`;
-
-    return resumen;
-  }
-
-  /* ======================
-     CTA
-     ====================== */
 
   function showCTA() {
     if (ctaShown) return;
@@ -136,20 +179,15 @@ document.addEventListener("DOMContentLoaded", () => {
     messages.push({ role: "user", content: text });
     input.value = "";
 
-    // 🔹 Captura progresiva de datos técnicos
-    if (!industria && userMessageCount >= 2) {
-      industria = text;
-    } else if (industria && !tipoTrabajo) {
-      tipoTrabajo = text;
-    } else if (industria && tipoTrabajo && !plazo) {
-      plazo = text;
-    }
+    // 🔎 Detección inteligente
+    if (!industria) industria = detectIndustria(text) || industria;
+    if (!tipoTrabajo) tipoTrabajo = detectTipoTrabajo(text) || tipoTrabajo;
+    if (!plazo) plazo = detectPlazo(text) || plazo;
 
     const typing = document.createElement("div");
     typing.className = "ai-message";
     typing.innerText = "Agustina está escribiendo...";
     messagesDiv.appendChild(typing);
-    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
 
     try {
       const res = await fetch("/api/chat", {
@@ -164,19 +202,17 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      const localIntent = hasCommercialKeywords(text);
-
-      if ((data.intent === true || localIntent) && userMessageCount >= 2) {
+      if ((data.intent === true || hasCommercialKeywords(text)) && userMessageCount >= 2) {
         showCTA();
       }
 
-    } catch (err) {
+    } catch {
       typing.innerText = "Error de conexión. Intentá nuevamente.";
     }
   }
 
   /* ======================
-     Formulario → API Lead
+     Formulario
      ====================== */
 
   leadCancel.addEventListener("click", () => {
@@ -208,17 +244,18 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error("Error backend");
+      if (!res.ok) throw new Error();
 
       alert("Gracias. Un técnico comercial va a revisar tu pedido y contactarte.");
       leadModal.classList.add("hidden");
       leadForm.reset();
 
-    } catch (err) {
+    } catch {
       alert("Hubo un error al enviar el pedido. Intentá nuevamente.");
     }
   });
 });
+
 
 
 
