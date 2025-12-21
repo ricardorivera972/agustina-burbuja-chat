@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
 
   const WEBHOOK_URL =
-    "https://script.google.com/macros/s/AKfycby79cuF2hW-CWk-CFt_u7FRv_wwehD9v3Q8w5ygbZur-VrRM7B9VkBIT0pclyQJpvBo/exec";
+    "https://script.google.com/macros/s/AKfycbzDHQfdGWd8h1jKMYxPUS5HJkLXcdoFT4lRKcTDIn16kfGdWUccb6I2uonaYZZmvijX/exec";
 
   // =========================
   // 1. Entrada (GET de test o POST real)
