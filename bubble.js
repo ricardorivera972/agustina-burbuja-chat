@@ -36,7 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
      ====================== */
 
   function isQuestion(text) {
-    return text.includes("?") || text.startsWith("cuál") || text.startsWith("cuanto");
+    return text.includes("?") ||
+      text.startsWith("cuál") ||
+      text.startsWith("cuanto") ||
+      text.startsWith("pueden");
   }
 
   function detectIndustria(text) {
@@ -46,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (materialWords.some(w => t.includes(w))) return null;
     if (keywords.some(k => t.includes(k))) return text;
-
     return null;
   }
 
@@ -55,8 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isQuestion(t)) return null;
 
     const trabajos = [
-      "corte", "láser", "laser", "plegado",
-      "soldadura", "pintura", "mecanizado"
+      "corte", "láser", "laser",
+      "plegado", "soldadura",
+      "pintura", "mecanizado"
     ];
 
     if (trabajos.some(w => t.includes(w))) return text;
@@ -67,64 +70,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const t = text.toLowerCase();
     const palabras = [
       "día", "días", "semana", "semanas",
-      "urgente", "para", "fecha", "sin apuro"
+      "urgente", "fecha", "sin apuro"
     ];
 
     if (palabras.some(w => t.includes(w))) return text;
     return null;
   }
 
-  function buildChatSummary() {
-    let resumen = "Solicitud recibida desde el chat web.\n\n";
+  function buildResumenInterno() {
+    let resumen = "Solicitud de cotización recibida desde el chat web.\n";
 
-    if (tipoTrabajo) resumen += `Trabajo requerido: ${tipoTrabajo}.\n`;
-    if (industria) resumen += `Aplicación / industria: ${industria}.\n`;
-    if (plazo) resumen += `Plazo estimado: ${plazo}.\n`;
+    if (tipoTrabajo) resumen += `Trabajo requerido: ${tipoTrabajo}. `;
+    if (industria) resumen += `Aplicación/industria: ${industria}. `;
+    if (plazo) resumen += `Plazo: ${plazo}. `;
 
-    resumen += "\nMensajes relevantes del cliente:\n";
-
-    messages
-      .filter(m => m.role === "user")
-      .slice(-5)
-      .forEach(m => {
-        resumen += `- ${m.content}\n`;
-      });
-
-    return resumen;
+    return resumen.trim();
   }
 
-  /* ======================
-     Apertura / cierre
-     ====================== */
+  function buildDescripcionTecnicaFallback() {
+    let desc = "Cliente solicita evaluación técnica para posible cotización.";
 
-  bubble.addEventListener("click", () => {
-    chat.style.display = "flex";
-    bubble.style.display = "none";
+    if (tipoTrabajo) desc += ` Trabajo solicitado: ${tipoTrabajo}.`;
+    if (industria) desc += ` Aplicación/industria: ${industria}.`;
+    if (plazo) desc += ` Plazo estimado: ${plazo}.`;
 
-    if (!presented) {
-      addMessage(
-        "assistant",
-        "Hola, soy Agustina, tu asistente virtual de Lasertec Ingeniería. ¿En qué puedo ayudarte hoy?"
-      );
-      presented = true;
-    }
-
-    setTimeout(() => input.focus(), 100);
-  });
-
-  closeBtn.addEventListener("click", () => {
-    chat.style.display = "none";
-    bubble.style.display = "block";
-  });
-
-  sendBtn.addEventListener("click", sendMessage);
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
+    return desc;
+  }
 
   /* ======================
      UI
@@ -143,8 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "precio", "cuanto", "cuánto",
       "cotización", "cotizar", "valor"
     ];
-    const lower = text.toLowerCase();
-    return keywords.some(k => lower.includes(k));
+    return keywords.some(k => text.toLowerCase().includes(k));
   }
 
   function showCTA() {
@@ -179,7 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
     messages.push({ role: "user", content: text });
     input.value = "";
 
-    // 🔎 Detección inteligente
     if (!industria) industria = detectIndustria(text) || industria;
     if (!tipoTrabajo) tipoTrabajo = detectTipoTrabajo(text) || tipoTrabajo;
     if (!plazo) plazo = detectPlazo(text) || plazo;
@@ -222,16 +191,18 @@ document.addEventListener("DOMContentLoaded", () => {
   leadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const descripcionUsuario = document.getElementById("lead-notes").value;
+
     const payload = {
       nombre: document.getElementById("lead-name").value,
       empresa: document.getElementById("lead-company").value,
       email: document.getElementById("lead-email").value,
       telefono: document.getElementById("lead-phone").value,
-      comentarios: document.getElementById("lead-notes").value,
+      comentarios: descripcionUsuario || buildDescripcionTecnicaFallback(),
       industria: industria,
       tipo_trabajo: tipoTrabajo,
       plazo: plazo,
-      resumen_chat: buildChatSummary(),
+      resumen_chat: buildResumenInterno(),
       origen: "Chat Agustina Web",
       fecha_hora: new Date().toISOString(),
       dispositivo: navigator.userAgent
@@ -255,6 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
