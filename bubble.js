@@ -24,6 +24,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let userMessageCount = 0;
   const messages = [];
 
+  // ======================
+  // Datos técnicos a completar
+  // ======================
+  let industria = "";
+  let tipoTrabajo = "";
+  let plazo = "";
+
   /* ======================
      Apertura / cierre chat
      ====================== */
@@ -79,10 +86,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function buildChatSummary() {
-    return messages
+    let resumen = "Intercambio con potencial cliente.\n\n";
+    messages
       .filter(m => m.role === "user")
-      .map(m => `- ${m.content}`)
-      .join("\n");
+      .forEach(m => {
+        resumen += `- ${m.content}\n`;
+      });
+
+    if (industria) resumen += `\nIndustria / aplicación: ${industria}`;
+    if (tipoTrabajo) resumen += `\nTipo de trabajo: ${tipoTrabajo}`;
+    if (plazo) resumen += `\nPlazo estimado: ${plazo}`;
+
+    return resumen;
   }
 
   /* ======================
@@ -120,6 +135,15 @@ document.addEventListener("DOMContentLoaded", () => {
     addMessage("user", text);
     messages.push({ role: "user", content: text });
     input.value = "";
+
+    // 🔹 Captura progresiva de datos técnicos
+    if (!industria && userMessageCount >= 2) {
+      industria = text;
+    } else if (industria && !tipoTrabajo) {
+      tipoTrabajo = text;
+    } else if (industria && tipoTrabajo && !plazo) {
+      plazo = text;
+    }
 
     const typing = document.createElement("div");
     typing.className = "ai-message";
@@ -168,11 +192,13 @@ document.addEventListener("DOMContentLoaded", () => {
       email: document.getElementById("lead-email").value,
       telefono: document.getElementById("lead-phone").value,
       comentarios: document.getElementById("lead-notes").value,
+      industria: industria,
+      tipo_trabajo: tipoTrabajo,
+      plazo: plazo,
       resumen_chat: buildChatSummary(),
       origen: "Chat Agustina Web",
       fecha_hora: new Date().toISOString(),
-      dispositivo: navigator.userAgent,
-      test: "ok" // 👈 agregado para asegurar que llegue algo al webhook
+      dispositivo: navigator.userAgent
     };
 
     try {
@@ -193,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
