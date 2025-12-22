@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let presented = false;
   let ctaShown = false;
   let userMessageCount = 0;
+  let technicalRequestDetected = false;
   const messages = [];
 
   /* ======================
@@ -77,10 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function hasCommercialKeywords(text) {
-    const keywords = [
-      "precio", "cuanto", "cuánto",
-      "cotización", "cotizar", "valor"
-    ];
+    const keywords = ["precio", "cuanto", "cuánto", "cotización", "cotizar", "valor"];
     return keywords.some(k => text.toLowerCase().includes(k));
   }
 
@@ -88,13 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const keywords = [
       "asesoramiento",
       "asesoren",
-      "evaluación técnica",
-      "ayuda técnica",
+      "ayuda",
       "necesito ayuda",
+      "no sé qué pedir",
+      "quiero que me asesoren",
       "orientación",
-      "quiero que me evalúen",
-      "revisen el trabajo",
-      "asesoramiento técnico"
+      "evaluación técnica",
+      "asesoramiento técnico",
+      "hablar con un técnico"
     ];
     return keywords.some(k => text.toLowerCase().includes(k));
   }
@@ -107,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const t = text.toLowerCase();
     const materiales = ["aisi", "acero", "inox", "aluminio", "chapa"];
     if (materiales.some(w => t.includes(w))) return null;
-    if (t.includes("industria") || t.includes("aplicación") || t.includes("sector")) {
+    if (t.includes("industria") || t.includes("sector") || t.includes("rubro")) {
       return text;
     }
     return null;
@@ -128,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function buildResumenInterno() {
-    let resumen = "Solicitud de evaluación técnica desde el chat web.\n";
+    let resumen = "Solicitud de asesoramiento técnico desde el chat web.\n";
     if (tipoTrabajo) resumen += `Trabajo: ${tipoTrabajo}. `;
     if (industria) resumen += `Industria: ${industria}. `;
     if (plazo) resumen += `Plazo: ${plazo}. `;
@@ -136,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function buildDescripcionFallback() {
-    let desc = "Cliente solicita evaluación técnica.";
+    let desc = "Cliente solicita asesoramiento técnico.";
     if (tipoTrabajo) desc += ` Trabajo: ${tipoTrabajo}.`;
     if (industria) desc += ` Industria: ${industria}.`;
     if (plazo) desc += ` Plazo: ${plazo}.`;
@@ -160,6 +159,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tipoTrabajo) tipoTrabajo = detectTipoTrabajo(text) || tipoTrabajo;
     if (!plazo) plazo = detectPlazo(text) || plazo;
 
+    if (hasTechnicalIntent(text)) {
+      technicalRequestDetected = true;
+      showCTA();
+      return;
+    }
+
     const typing = document.createElement("div");
     typing.className = "ai-message";
     typing.innerText = "Agustina está escribiendo...";
@@ -179,10 +184,8 @@ document.addEventListener("DOMContentLoaded", () => {
       messages.push({ role: "assistant", content: data.reply });
 
       if (
-        (data.intent === true ||
-         hasCommercialKeywords(text) ||
-         hasTechnicalIntent(text))
-        && userMessageCount >= 1
+        !ctaShown &&
+        (data.intent === true || hasCommercialKeywords(text))
       ) {
         showCTA();
       }
@@ -202,8 +205,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const cta = document.createElement("div");
     cta.className = "cta-box";
     cta.innerHTML = `
-      <p><strong>¿Querés que un técnico comercial evalúe técnicamente tu pedido?</strong></p>
-      <button id="cta-btn">Solicitar evaluación técnica</button>
+      <p><strong>Un técnico comercial puede evaluar tu caso directamente.</strong></p>
+      <button id="cta-btn">Solicitar asesoramiento técnico</button>
     `;
 
     messagesDiv.appendChild(cta);
@@ -234,9 +237,9 @@ document.addEventListener("DOMContentLoaded", () => {
       email: document.getElementById("lead-email").value,
       telefono: document.getElementById("lead-phone").value,
       comentarios: descripcionUsuario || buildDescripcionFallback(),
-      industria: industria,
+      industria,
       tipo_trabajo: tipoTrabajo,
-      plazo: plazo,
+      plazo,
       resumen_chat: buildResumenInterno(),
       origen: "Chat Agustina Web",
       fecha_hora: new Date().toISOString(),
@@ -252,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok) throw new Error();
 
-      alert("Gracias. Un técnico comercial va a revisar tu pedido.");
+      alert("Gracias. Un técnico comercial va a contactarte.");
       leadModal.classList.add("hidden");
       leadForm.reset();
 
