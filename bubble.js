@@ -24,81 +24,49 @@ document.addEventListener("DOMContentLoaded", () => {
   let userMessageCount = 0;
   const messages = [];
 
-  // ======================
-  // Datos técnicos
-  // ======================
+  /* ======================
+     Datos técnicos detectados
+     ====================== */
   let industria = "";
   let tipoTrabajo = "";
   let plazo = "";
 
   /* ======================
-     Utilidades detección
+     APERTURA / CIERRE CHAT
      ====================== */
 
-  function isQuestion(text) {
-    return text.includes("?") ||
-      text.startsWith("cuál") ||
-      text.startsWith("cuanto") ||
-      text.startsWith("pueden");
-  }
+  bubble.addEventListener("click", () => {
+    console.log("CLICK BURBUJA OK");
+    chat.style.display = "flex";
+    bubble.style.display = "none";
 
-  function detectIndustria(text) {
-    const t = text.toLowerCase();
-    const keywords = ["industria", "aplicación", "sector", "se usa en", "va para"];
-    const materialWords = ["aisi", "acero", "inox", "aluminio", "chapa"];
+    if (!presented) {
+      addMessage(
+        "assistant",
+        "Hola, soy Agustina, tu asistente virtual de Lasertec Ingeniería. ¿En qué puedo ayudarte?"
+      );
+      presented = true;
+    }
 
-    if (materialWords.some(w => t.includes(w))) return null;
-    if (keywords.some(k => t.includes(k))) return text;
-    return null;
-  }
+    setTimeout(() => input.focus(), 100);
+  });
 
-  function detectTipoTrabajo(text) {
-    const t = text.toLowerCase();
-    if (isQuestion(t)) return null;
+  closeBtn.addEventListener("click", () => {
+    chat.style.display = "none";
+    bubble.style.display = "block";
+  });
 
-    const trabajos = [
-      "corte", "láser", "laser",
-      "plegado", "soldadura",
-      "pintura", "mecanizado"
-    ];
+  sendBtn.addEventListener("click", sendMessage);
 
-    if (trabajos.some(w => t.includes(w))) return text;
-    return null;
-  }
-
-  function detectPlazo(text) {
-    const t = text.toLowerCase();
-    const palabras = [
-      "día", "días", "semana", "semanas",
-      "urgente", "fecha", "sin apuro"
-    ];
-
-    if (palabras.some(w => t.includes(w))) return text;
-    return null;
-  }
-
-  function buildResumenInterno() {
-    let resumen = "Solicitud de cotización recibida desde el chat web.\n";
-
-    if (tipoTrabajo) resumen += `Trabajo requerido: ${tipoTrabajo}. `;
-    if (industria) resumen += `Aplicación/industria: ${industria}. `;
-    if (plazo) resumen += `Plazo: ${plazo}. `;
-
-    return resumen.trim();
-  }
-
-  function buildDescripcionTecnicaFallback() {
-    let desc = "Cliente solicita evaluación técnica para posible cotización.";
-
-    if (tipoTrabajo) desc += ` Trabajo solicitado: ${tipoTrabajo}.`;
-    if (industria) desc += ` Aplicación/industria: ${industria}.`;
-    if (plazo) desc += ` Plazo estimado: ${plazo}.`;
-
-    return desc;
-  }
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
 
   /* ======================
-     UI
+     UTILIDADES UI
      ====================== */
 
   function addMessage(role, text) {
@@ -117,27 +85,52 @@ document.addEventListener("DOMContentLoaded", () => {
     return keywords.some(k => text.toLowerCase().includes(k));
   }
 
-  function showCTA() {
-    if (ctaShown) return;
+  /* ======================
+     DETECCIÓN SIMPLE
+     ====================== */
 
-    const cta = document.createElement("div");
-    cta.className = "cta-box";
-    cta.innerHTML = `
-      <p><strong>¿Querés que un técnico comercial evalúe técnicamente tu pedido?</strong></p>
-      <button id="cta-btn">Solicitar evaluación técnica</button>
-    `;
+  function detectIndustria(text) {
+    const t = text.toLowerCase();
+    const materiales = ["aisi", "acero", "inox", "aluminio", "chapa"];
+    if (materiales.some(w => t.includes(w))) return null;
+    if (t.includes("industria") || t.includes("aplicación") || t.includes("sector")) {
+      return text;
+    }
+    return null;
+  }
 
-    messagesDiv.appendChild(cta);
-    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
-    ctaShown = true;
+  function detectTipoTrabajo(text) {
+    const t = text.toLowerCase();
+    const trabajos = ["corte", "láser", "laser", "plegado", "soldadura", "pintura"];
+    if (trabajos.some(w => t.includes(w))) return text;
+    return null;
+  }
 
-    document.getElementById("cta-btn").addEventListener("click", () => {
-      leadModal.classList.remove("hidden");
-    });
+  function detectPlazo(text) {
+    const t = text.toLowerCase();
+    const palabras = ["día", "días", "semana", "semanas", "urgente", "fecha"];
+    if (palabras.some(w => t.includes(w))) return text;
+    return null;
+  }
+
+  function buildResumenInterno() {
+    let resumen = "Solicitud de cotización desde el chat web.\n";
+    if (tipoTrabajo) resumen += `Trabajo: ${tipoTrabajo}. `;
+    if (industria) resumen += `Aplicación: ${industria}. `;
+    if (plazo) resumen += `Plazo: ${plazo}. `;
+    return resumen.trim();
+  }
+
+  function buildDescripcionFallback() {
+    let desc = "Cliente solicita evaluación técnica.";
+    if (tipoTrabajo) desc += ` Trabajo: ${tipoTrabajo}.`;
+    if (industria) desc += ` Aplicación: ${industria}.`;
+    if (plazo) desc += ` Plazo: ${plazo}.`;
+    return desc;
   }
 
   /* ======================
-     Envío de mensajes
+     ENVÍO DE MENSAJES
      ====================== */
 
   async function sendMessage() {
@@ -181,7 +174,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
-     Formulario
+     CTA
+     ====================== */
+
+  function showCTA() {
+    if (ctaShown) return;
+
+    const cta = document.createElement("div");
+    cta.className = "cta-box";
+    cta.innerHTML = `
+      <p><strong>¿Querés que un técnico comercial evalúe técnicamente tu pedido?</strong></p>
+      <button id="cta-btn">Solicitar evaluación técnica</button>
+    `;
+
+    messagesDiv.appendChild(cta);
+    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
+    ctaShown = true;
+
+    document.getElementById("cta-btn").addEventListener("click", () => {
+      leadModal.classList.remove("hidden");
+    });
+  }
+
+  /* ======================
+     FORMULARIO
      ====================== */
 
   leadCancel.addEventListener("click", () => {
@@ -198,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
       empresa: document.getElementById("lead-company").value,
       email: document.getElementById("lead-email").value,
       telefono: document.getElementById("lead-phone").value,
-      comentarios: descripcionUsuario || buildDescripcionTecnicaFallback(),
+      comentarios: descripcionUsuario || buildDescripcionFallback(),
       industria: industria,
       tipo_trabajo: tipoTrabajo,
       plazo: plazo,
@@ -217,15 +233,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok) throw new Error();
 
-      alert("Gracias. Un técnico comercial va a revisar tu pedido y contactarte.");
+      alert("Gracias. Un técnico comercial va a revisar tu pedido.");
       leadModal.classList.add("hidden");
       leadForm.reset();
 
     } catch {
-      alert("Hubo un error al enviar el pedido. Intentá nuevamente.");
+      alert("Hubo un error al enviar el pedido.");
     }
   });
 });
+
 
 
 
