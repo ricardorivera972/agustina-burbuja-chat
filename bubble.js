@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
      ====================== */
 
   bubble.addEventListener("click", () => {
-    console.log("CLICK BURBUJA OK");
     chat.style.display = "flex";
     bubble.style.display = "none";
 
@@ -85,6 +84,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return keywords.some(k => text.toLowerCase().includes(k));
   }
 
+  function hasTechnicalIntent(text) {
+    const keywords = [
+      "asesoramiento",
+      "asesoren",
+      "evaluación técnica",
+      "ayuda técnica",
+      "necesito ayuda",
+      "orientación",
+      "quiero que me evalúen",
+      "revisen el trabajo",
+      "asesoramiento técnico"
+    ];
+    return keywords.some(k => text.toLowerCase().includes(k));
+  }
+
   /* ======================
      DETECCIÓN SIMPLE
      ====================== */
@@ -114,9 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function buildResumenInterno() {
-    let resumen = "Solicitud de cotización desde el chat web.\n";
+    let resumen = "Solicitud de evaluación técnica desde el chat web.\n";
     if (tipoTrabajo) resumen += `Trabajo: ${tipoTrabajo}. `;
-    if (industria) resumen += `Aplicación: ${industria}. `;
+    if (industria) resumen += `Industria: ${industria}. `;
     if (plazo) resumen += `Plazo: ${plazo}. `;
     return resumen.trim();
   }
@@ -124,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function buildDescripcionFallback() {
     let desc = "Cliente solicita evaluación técnica.";
     if (tipoTrabajo) desc += ` Trabajo: ${tipoTrabajo}.`;
-    if (industria) desc += ` Aplicación: ${industria}.`;
+    if (industria) desc += ` Industria: ${industria}.`;
     if (plazo) desc += ` Plazo: ${plazo}.`;
     return desc;
   }
@@ -164,7 +178,12 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      if ((data.intent === true || hasCommercialKeywords(text)) && userMessageCount >= 2) {
+      if (
+        (data.intent === true ||
+         hasCommercialKeywords(text) ||
+         hasTechnicalIntent(text))
+        && userMessageCount >= 1
+      ) {
         showCTA();
       }
 
@@ -242,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
