@@ -23,11 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let ctaShown = false;
   const messages = [];
 
-  /* ======================
-     Datos técnicos detectados
-     ====================== */
   let industria = "";
-  let tipoTrabajo = "";
 
   /* ======================
      APERTURA / CIERRE CHAT
@@ -63,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ======================
-     UTILIDADES UI
+     UTILIDADES
      ====================== */
 
   function addMessage(role, text) {
@@ -74,46 +70,32 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
   }
 
-  function hasCommercialKeywords(text) {
-    const keywords = ["precio", "cuanto", "cuánto", "cotización", "cotizar", "valor"];
-    return keywords.some(k => text.toLowerCase().includes(k));
-  }
-
   function hasTechnicalIntent(text) {
     const keywords = [
       "asesoramiento",
-      "asesoren",
       "ayuda",
-      "necesito ayuda",
-      "no sé qué pedir",
       "quiero que me asesoren",
-      "orientación",
       "evaluación técnica",
-      "asesoramiento técnico",
       "hablar con un técnico"
     ];
     return keywords.some(k => text.toLowerCase().includes(k));
   }
 
-  /* ======================
-     DETECCIÓN SIMPLE
-     ====================== */
-
   function detectIndustria(text) {
     const t = text.toLowerCase();
-    const materiales = ["aisi", "acero", "inox", "aluminio", "chapa"];
-    if (materiales.some(w => t.includes(w))) return null;
     if (t.includes("industria") || t.includes("sector") || t.includes("rubro")) {
       return text;
     }
     return null;
   }
 
-  function detectTipoTrabajo(text) {
-    const t = text.toLowerCase();
-    const trabajos = ["corte", "láser", "laser", "plegado", "soldadura", "pintura"];
-    if (trabajos.some(w => t.includes(w))) return text;
-    return null;
+  function buildChatResumen() {
+    const userMessages = messages
+      .filter(m => m.role === "user")
+      .map(m => m.content)
+      .join(" | ");
+
+    return userMessages || "Consulta iniciada desde el chat web.";
   }
 
   /* ======================
@@ -129,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
     input.value = "";
 
     if (!industria) industria = detectIndustria(text) || industria;
-    if (!tipoTrabajo) tipoTrabajo = detectTipoTrabajo(text) || tipoTrabajo;
 
     if (hasTechnicalIntent(text)) {
       showCTA();
@@ -153,10 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
-
-      if (!ctaShown && (data.intent === true || hasCommercialKeywords(text))) {
-        showCTA();
-      }
 
     } catch {
       typing.innerText = "Error de conexión. Intentá nuevamente.";
@@ -187,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
-     FORMULARIO
+     FORMULARIO (SOLO CONTACTO)
      ====================== */
 
   leadCancel.addEventListener("click", () => {
@@ -197,22 +174,14 @@ document.addEventListener("DOMContentLoaded", () => {
   leadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const descripcionUsuario = document.getElementById("lead-notes").value;
-
     const payload = {
-      fecha_hora: new Date().toISOString(),
       origen: "Chat Agustina Web",
       empresa: document.getElementById("lead-company").value,
       nombre: document.getElementById("lead-name").value,
       email: document.getElementById("lead-email").value,
       telefono: document.getElementById("lead-phone").value,
       industria: industria || "No informado",
-      tipo_trabajo: tipoTrabajo || "No informado",
-      descripcion_requerimiento:
-        (descripcionUsuario || "").trim() ||
-        "Necesidad expresada durante la conversación en el chat.",
-      estado: "Nuevo",
-      notas_internas: ""
+      comentarios: buildChatResumen()
     };
 
     try {
@@ -233,6 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
