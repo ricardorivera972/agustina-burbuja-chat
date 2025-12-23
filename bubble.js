@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let presented = false;
   let ctaShown = false;
   let userMessageCount = 0;
-  let technicalRequestDetected = false;
   const messages = [];
 
   /* ======================
@@ -160,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!plazo) plazo = detectPlazo(text) || plazo;
 
     if (hasTechnicalIntent(text)) {
-      technicalRequestDetected = true;
       showCTA();
       return;
     }
@@ -183,10 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
-      if (
-        !ctaShown &&
-        (data.intent === true || hasCommercialKeywords(text))
-      ) {
+      if (!ctaShown && (data.intent === true || hasCommercialKeywords(text))) {
         showCTA();
       }
 
@@ -242,8 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
       plazo,
       resumen_chat: buildResumenInterno(),
       origen: "Chat Agustina Web",
-      fecha_hora: new Date().toISOString(),
-      dispositivo: navigator.userAgent
+      fecha_hora: new Date().toISOString()
     };
 
     try {
@@ -264,6 +258,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
+
 
 
 
