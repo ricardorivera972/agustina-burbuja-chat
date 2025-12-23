@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   // ✅ URL NUEVA DEL APPS SCRIPT (23/12/2025)
   const WEBHOOK_URL =
-    "https://script.google.com/macros/s/AKfycbxWLfX51AE9wA-L2foVwEAWnFwswbdLB0jJtzWBE4nsgeCGdK2s4gV0QD4Zx-8IOF49/exec";
+    "https://script.google.com/macros/s/AKfycbwSEdm58F4jyQLpfvs84stFQJp9vQ10f0nC4IxIodeXV5SBudRjd4DceOklqKRNnfX6/exec";
 
   // =========================
   // 1. Entrada
