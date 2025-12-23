@@ -14,9 +14,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  // ✅ URL FINAL DEL APPS SCRIPT (CONFIRMADA)
+  // ✅ URL FINAL DEL APPS SCRIPT (ACTUALIZADA)
   const WEBHOOK_URL =
-    "https://script.google.com/macros/s/AKfycbwSEdm58F4jyQLpfvs84stFQJp9vQ10f0nC4IxIodeXV5SBudRjd4DceOklqKRNnfX6/exec";
+    "https://script.google.com/macros/s/AKfycbxtUKNudKfsOwjVPVLH4e_O_mgl7P9WWI5aK_UxTodjjBZbQi0V5b2SoQ7yRpx6Hev9/exec";
 
   // =========================
   // 1. Entrada
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   const incoming = req.body || {};
 
   // =========================
-  // 2. Payload FINAL ALINEADO AL SHEET (8 CAMPOS)
+  // 2. Payload FINAL (ALINEADO AL SHEET)
   // =========================
   const payload = {
     origen: incoming.origen || "Chat Agustina Web",
@@ -81,6 +81,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
