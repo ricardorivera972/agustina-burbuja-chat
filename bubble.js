@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let presented = false;
   let ctaShown = false;
-  let userMessageCount = 0;
   const messages = [];
 
   /* ======================
@@ -29,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
      ====================== */
   let industria = "";
   let tipoTrabajo = "";
-  let plazo = "";
 
   /* ======================
      APERTURA / CIERRE CHAT
@@ -118,29 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return null;
   }
 
-  function detectPlazo(text) {
-    const t = text.toLowerCase();
-    const palabras = ["día", "días", "semana", "semanas", "urgente", "fecha"];
-    if (palabras.some(w => t.includes(w))) return text;
-    return null;
-  }
-
-  function buildResumenInterno() {
-    let resumen = "Solicitud de asesoramiento técnico desde el chat web.\n";
-    if (tipoTrabajo) resumen += `Trabajo: ${tipoTrabajo}. `;
-    if (industria) resumen += `Industria: ${industria}. `;
-    if (plazo) resumen += `Plazo: ${plazo}. `;
-    return resumen.trim();
-  }
-
-  function buildDescripcionFallback() {
-    let desc = "Cliente solicita asesoramiento técnico.";
-    if (tipoTrabajo) desc += ` Trabajo: ${tipoTrabajo}.`;
-    if (industria) desc += ` Industria: ${industria}.`;
-    if (plazo) desc += ` Plazo: ${plazo}.`;
-    return desc;
-  }
-
   /* ======================
      ENVÍO DE MENSAJES
      ====================== */
@@ -149,14 +124,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = input.value.trim();
     if (!text) return;
 
-    userMessageCount++;
     addMessage("user", text);
     messages.push({ role: "user", content: text });
     input.value = "";
 
     if (!industria) industria = detectIndustria(text) || industria;
     if (!tipoTrabajo) tipoTrabajo = detectTipoTrabajo(text) || tipoTrabajo;
-    if (!plazo) plazo = detectPlazo(text) || plazo;
 
     if (hasTechnicalIntent(text)) {
       showCTA();
@@ -227,17 +200,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const descripcionUsuario = document.getElementById("lead-notes").value;
 
     const payload = {
-      nombre: document.getElementById("lead-name").value,
+      fecha_hora: new Date().toISOString(),
+      origen: "Chat Agustina Web",
       empresa: document.getElementById("lead-company").value,
+      nombre: document.getElementById("lead-name").value,
       email: document.getElementById("lead-email").value,
       telefono: document.getElementById("lead-phone").value,
-      comentarios: descripcionUsuario || buildDescripcionFallback(),
-      industria,
-      tipo_trabajo: tipoTrabajo,
-      plazo,
-      resumen_chat: buildResumenInterno(),
-      origen: "Chat Agustina Web",
-      fecha_hora: new Date().toISOString()
+      industria: industria || "No informado",
+      tipo_trabajo: tipoTrabajo || "No informado",
+      descripcion_requerimiento:
+        (descripcionUsuario || "").trim() ||
+        "Necesidad expresada durante la conversación en el chat.",
+      estado: "Nuevo",
+      notas_internas: ""
     };
 
     try {
@@ -258,6 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
