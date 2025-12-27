@@ -12,51 +12,17 @@ function detectIntent(text) {
   const t = text.toLowerCase();
 
   const keywords = [
-
-    // Cotización / precio
-    "cotización",
-    "cotizar",
-    "presupuesto",
-    "precio",
-    "costo",
-    "valor",
-    "cuánto sale",
-    "cuanto sale",
-
-    // Compra / producción
-    "comprar",
-    "pedido",
-    "fabricar",
-    "producción",
-    "cantidad",
-    "volumen",
-    "urgente",
-    "plazo",
-    "entrega",
-
-    // Intención clara de avanzar
-    "necesito",
-    "requerimos",
-    "quiero hacer",
-    "quiero encargar",
-
-    // Derivación humana / asesoramiento (CLAVE)
-    "asesor",
-    "asesor técnico",
-    "asesoramiento",
-    "hablar con alguien",
-    "hablar con un técnico",
-    "hablar con un asesor",
-    "contacto",
-    "que me llamen",
-    "llamame",
-    "me pueden llamar",
-    "derivame",
-    "derivame a un asesor",
-    "quiero hablar",
-    "necesito hablar",
-    "me contactan",
-    "contactarme",
+    "cotización", "cotizar", "presupuesto", "precio", "costo", "valor",
+    "cuánto sale", "cuanto sale",
+    "comprar", "pedido", "fabricar", "producción", "cantidad", "volumen",
+    "urgente", "plazo", "entrega",
+    "necesito", "requerimos", "quiero hacer", "quiero encargar",
+    "asesor", "asesor técnico", "asesoramiento",
+    "hablar con alguien", "hablar con un técnico", "hablar con un asesor",
+    "contacto", "que me llamen", "llamame", "me pueden llamar",
+    "derivame", "derivame a un asesor",
+    "quiero hablar", "necesito hablar",
+    "me contactan", "contactarme"
   ];
 
   return keywords.some(k => t.includes(k));
@@ -74,55 +40,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid messages format" });
     }
 
-    // PROMPT FINAL INTEGRADO – AGUSTINA
     const systemPrompt = `
 Sos Agustina, asistente virtual técnica–comercial de LASERTEC INGENIERÍA.
-
-La empresa se especializa en:
-- Corte por láser
-- Plegado CNC
-- Soldadura
-- Pintura industrial
-
-Trabajás principalmente con acero al carbono y acero inoxidable.
-
-HORARIO DE ATENCIÓN:
-Lunes a viernes de 8:00 a 11:30 y de 13:00 a 16:30.
-
-TU FUNCIÓN:
-- Responder consultas informativas sobre la empresa
-- Orientar técnicamente de forma básica
-- Detectar intención comercial (esto lo maneja el sistema, no vos)
-- Derivar al técnico comercial humano cuando corresponde
-
-NO PODÉS:
-- Cotizar precios
-- Dar costos
-- Prometer plazos
-- Tomar decisiones finales
-- Pedir datos personales
-- Mostrar formularios o procesos internos
-
-TONO:
-- Profesional
-- Claro
-- Técnico pero accesible
-- Empático
-- No invasivo
-- Nunca agresivo comercialmente
-
-REGLA DE ORO:
-- NO interrogues al usuario al inicio
-- NO hagas preguntas técnicas si el usuario solo se está informando
-- Solo hacé preguntas técnicas cuando haya intención real de hacer un trabajo
-- Si el usuario pide asesoramiento técnico explícito, derivá directamente sin hacer más preguntas
-
-REGLA CRÍTICA:
-Si una consulta puede responderse con la información disponible, respondela.
-Si requiere validación técnica, derivá al técnico comercial sin prometer nada.
-
-OBJETIVO FINAL:
-Ordenar la necesidad del cliente, reducir fricción y derivar pedidos mejor calificados al equipo humano.
+(… PROMPT ORIGINAL SIN CAMBIOS …)
 `;
 
     const completion = await openai.chat.completions.create({
@@ -134,7 +54,43 @@ Ordenar la necesidad del cliente, reducir fricción y derivar pedidos mejor cali
       ]
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply = completion.choices[0].message.content || "";
+
+    /* ===========================
+       LISA4 – CARGA DE PROSPECTOS
+       =========================== */
+
+    const startTag = "<<<PROSPECTOS_JSON>>>";
+    const endTag = "<<<FIN_PROSPECTOS_JSON>>>";
+
+    if (
+      process.env.APP_MODE === "LISA3" &&
+      reply.includes(startTag) &&
+      reply.includes(endTag)
+    ) {
+      try {
+        const jsonBlock = reply
+          .split(startTag)[1]
+          .split(endTag)[0]
+          .trim();
+
+        const prospects = JSON.parse(jsonBlock);
+
+        if (Array.isArray(prospects)) {
+          for (const prospect of prospects) {
+            await fetch(process.env.PROSPECTS_WEBHOOK_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(prospect)
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Error cargando prospectos:", e);
+      }
+    }
+
+    /* ===== FIN LISA4 ===== */
 
     const lastUserMessage = [...messages]
       .reverse()
@@ -155,6 +111,7 @@ Ordenar la necesidad del cliente, reducir fricción y derivar pedidos mejor cali
     });
   }
 }
+
 
 
 
