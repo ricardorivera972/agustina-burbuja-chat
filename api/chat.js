@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import fetch from "node-fetch"; // ✅ FIX CLAVE
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -40,7 +41,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid messages format" });
     }
 
-    // 🔴 CAMBIO CLAVE: usar el prompt desde Vercel (Lisa4)
+    // 🔑 LISA4: prompt desde variables de entorno
     const systemPrompt = process.env.SYSTEM_PROMPT;
 
     const completion = await openai.chat.completions.create({
@@ -78,7 +79,9 @@ export default async function handler(req, res) {
           for (const prospect of prospects) {
             await fetch(process.env.PROSPECTS_WEBHOOK_URL, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json"
+              },
               body: JSON.stringify(prospect)
             });
           }
@@ -109,6 +112,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
