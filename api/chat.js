@@ -40,10 +40,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid messages format" });
     }
 
-    const systemPrompt = `
-Sos Agustina, asistente virtual técnica–comercial de LASERTEC INGENIERÍA.
-(… PROMPT ORIGINAL SIN CAMBIOS …)
-`;
+    // 🔴 CAMBIO CLAVE: usar el prompt desde Vercel (Lisa4)
+    const systemPrompt = process.env.SYSTEM_PROMPT;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -111,6 +109,7 @@ Sos Agustina, asistente virtual técnica–comercial de LASERTEC INGENIERÍA.
     });
   }
 }
+
 
 
 
