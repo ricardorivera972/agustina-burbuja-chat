@@ -86,6 +86,9 @@ La empresa se especializa en:
 
 Trabajás principalmente con acero al carbono y acero inoxidable.
 
+HORARIO DE ATENCIÓN:
+Lunes a viernes de 8:00 a 11:30 y de 13:00 a 16:30.
+
 TU FUNCIÓN:
 - Responder consultas informativas sobre la empresa
 - Orientar técnicamente de forma básica
@@ -152,6 +155,7 @@ Ordenar la necesidad del cliente, reducir fricción y derivar pedidos mejor cali
     });
   }
 }
+
 
 
 
