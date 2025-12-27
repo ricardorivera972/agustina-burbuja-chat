@@ -5,13 +5,15 @@ const openai = new OpenAI({
 });
 
 /**
- * Detecta intención comercial de cotización
+ * Detecta intención comercial o de derivación humana
  * (la UI decide qué hacer con esto)
  */
 function detectIntent(text) {
   const t = text.toLowerCase();
 
   const keywords = [
+
+    // Cotización / precio
     "cotización",
     "cotizar",
     "presupuesto",
@@ -20,19 +22,41 @@ function detectIntent(text) {
     "valor",
     "cuánto sale",
     "cuanto sale",
-    "plazo",
-    "entrega",
-    "urgente",
-    "cantidad",
-    "volumen",
+
+    // Compra / producción
     "comprar",
-    "necesito",
-    "requerimos",
     "pedido",
     "fabricar",
     "producción",
-    "asesorar",
-    "asesoramiento"
+    "cantidad",
+    "volumen",
+    "urgente",
+    "plazo",
+    "entrega",
+
+    // Intención clara de avanzar
+    "necesito",
+    "requerimos",
+    "quiero hacer",
+    "quiero encargar",
+
+    // Derivación humana / asesoramiento (CLAVE)
+    "asesor",
+    "asesor técnico",
+    "asesoramiento",
+    "hablar con alguien",
+    "hablar con un técnico",
+    "hablar con un asesor",
+    "contacto",
+    "que me llamen",
+    "llamame",
+    "me pueden llamar",
+    "derivame",
+    "derivame a un asesor",
+    "quiero hablar",
+    "necesito hablar",
+    "me contactan",
+    "contactarme",
   ];
 
   return keywords.some(k => t.includes(k));
@@ -90,59 +114,9 @@ REGLA DE ORO:
 - Solo hacé preguntas técnicas cuando haya intención real de hacer un trabajo
 - Si el usuario pide asesoramiento técnico explícito, derivá directamente sin hacer más preguntas
 
-====================================
-CONOCIMIENTO OFICIAL DE LASERTEC
-====================================
-
-SERVICIOS:
-- Corte láser de chapas
-- Corte láser de caños
-- Multiperforado láser
-- Plegado CNC
-- Soldadura MIG, TIG y robotizada
-- Ensamble y terminación
-- Pintura y tratamientos superficiales
-
-MATERIALES:
-- Acero al carbono
-- Acero inoxidable
-
-FORMATOS MÁXIMOS DE CHAPA:
-- Largo máximo: 6.000 mm
-- Ancho máximo: 3.000 mm
-
-CAPACIDADES DE CORTE LÁSER:
-- La planta cuenta con una nueva máquina de corte láser
-- Permite cortar chapas de hasta 30 mm de espesor según material y aplicación
-- La factibilidad final depende del material, espesor y geometría y puede requerir validación técnica
-
-HORARIOS DE ATENCIÓN PRESENCIAL Y LOGÍSTICA:
-- Lunes a viernes
-- De 8:00 a 12:00
-- De 13:00 a 16:30
-
-QUÉ NO HACE LA EMPRESA:
-- No vende materiales
-- No confirma capacidades no explicitadas sin validación técnica
-
 REGLA CRÍTICA:
-Si una consulta puede responderse con la información anterior, respondela con claridad.
-Si la información NO está explícitamente definida, NO inventes y derivá al técnico comercial.
-
-PEDIDO EXPLÍCITO DE ASESORAMIENTO TÉCNICO:
-Frases como:
-- "me podés asesorar"
-- "necesito asesoramiento"
-- "quiero que lo evalúen técnicamente"
-- "no sé bien qué pedir"
-
-En esos casos:
-- NO hagas más preguntas técnicas
-- Validá brevemente
-- Ofrecé derivación al técnico comercial
-
-EJEMPLO DE RESPUESTA CORRECTA:
-"Perfecto, para eso estamos. Con la información que ya me diste, un técnico comercial puede ayudarte a definir exactamente qué conviene."
+Si una consulta puede responderse con la información disponible, respondela.
+Si requiere validación técnica, derivá al técnico comercial sin prometer nada.
 
 OBJETIVO FINAL:
 Ordenar la necesidad del cliente, reducir fricción y derivar pedidos mejor calificados al equipo humano.
@@ -178,6 +152,7 @@ Ordenar la necesidad del cliente, reducir fricción y derivar pedidos mejor cali
     });
   }
 }
+
 
 
 
