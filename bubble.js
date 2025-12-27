@@ -70,15 +70,34 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
   }
 
+  // Detecta intención "humana" / asesor / cotización en el frontend (backup local)
   function hasTechnicalIntent(text) {
+    const t = text.toLowerCase();
     const keywords = [
       "asesoramiento",
-      "ayuda",
+      "asesorar",
       "quiero que me asesoren",
       "evaluación técnica",
-      "hablar con un técnico"
+      "evaluacion tecnica",
+      "hablar con un técnico",
+      "hablar con un tecnico",
+      "hablar con alguien",
+      "necesito hablar con alguien",
+      "derivame",
+      "asesor",
+      "asesor técnico",
+      "asesor tecnico",
+      "contacto",
+      "que me llamen",
+      "me pueden llamar",
+      "cotización",
+      "cotizacion",
+      "cotizar",
+      "presupuesto",
+      "precio",
+      "costo"
     ];
-    return keywords.some(k => text.toLowerCase().includes(k));
+    return keywords.some(k => t.includes(k));
   }
 
   function detectIndustria(text) {
@@ -99,6 +118,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
+     CTA (AUTO)
+     ====================== */
+
+  function openLeadModal() {
+    leadModal.classList.remove("hidden");
+  }
+
+  function showCTA() {
+    if (ctaShown) return;
+
+    const cta = document.createElement("div");
+    cta.className = "cta-box";
+    cta.innerHTML = `
+      <p><strong>Un técnico comercial puede evaluar tu caso directamente.</strong></p>
+      <button id="cta-btn">Dejar mis datos</button>
+    `;
+
+    messagesDiv.appendChild(cta);
+    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
+    ctaShown = true;
+
+    document.getElementById("cta-btn").addEventListener("click", () => {
+      openLeadModal();
+    });
+  }
+
+  // Este es el disparador definitivo: muestra CTA y abre modal sin depender del click
+  function triggerLeadCapture() {
+    showCTA();
+    openLeadModal();
+  }
+
+  /* ======================
      ENVÍO DE MENSAJES
      ====================== */
 
@@ -112,8 +164,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!industria) industria = detectIndustria(text) || industria;
 
+    // Si el usuario pide contacto humano / cotización en el texto -> ABRIR MODAL YA
     if (hasTechnicalIntent(text)) {
-      showCTA();
+      triggerLeadCapture();
       return;
     }
 
@@ -135,32 +188,14 @@ document.addEventListener("DOMContentLoaded", () => {
       addMessage("assistant", data.reply);
       messages.push({ role: "assistant", content: data.reply });
 
+      // ✅ CLAVE: si el backend detecta intención -> ABRIR MODAL YA
+      if (data && data.intent === true) {
+        triggerLeadCapture();
+      }
+
     } catch {
       typing.innerText = "Error de conexión. Intentá nuevamente.";
     }
-  }
-
-  /* ======================
-     CTA
-     ====================== */
-
-  function showCTA() {
-    if (ctaShown) return;
-
-    const cta = document.createElement("div");
-    cta.className = "cta-box";
-    cta.innerHTML = `
-      <p><strong>Un técnico comercial puede evaluar tu caso directamente.</strong></p>
-      <button id="cta-btn">Solicitar asesoramiento técnico</button>
-    `;
-
-    messagesDiv.appendChild(cta);
-    messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
-    ctaShown = true;
-
-    document.getElementById("cta-btn").addEventListener("click", () => {
-      leadModal.classList.remove("hidden");
-    });
   }
 
   /* ======================
@@ -202,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
