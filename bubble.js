@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     !input || !messagesDiv || !leadModal ||
     !leadCancel || !leadForm
   ) {
-    console.error("Agustina: falta algún elemento del DOM");
+    console.error("Chat: falta algún elemento del DOM");
     return;
   }
 
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!presented) {
       addMessage(
         "assistant",
-        "Hola, soy Agustina, tu asistente virtual de Lasertec Ingeniería. ¿En qué puedo ayudarte?"
+        "Hola, soy LISA, asistente de prospección comercial de Lasertec Ingeniería. ¿Qué tipo de empresas o sectores querés analizar?"
       );
       presented = true;
     }
@@ -70,36 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: "smooth" });
   }
 
-  // Detecta intención "humana" / asesor / cotización en el frontend (backup local)
-  function hasTechnicalIntent(text) {
-    const t = text.toLowerCase();
-    const keywords = [
-      "asesoramiento",
-      "asesorar",
-      "quiero que me asesoren",
-      "evaluación técnica",
-      "evaluacion tecnica",
-      "hablar con un técnico",
-      "hablar con un tecnico",
-      "hablar con alguien",
-      "necesito hablar con alguien",
-      "derivame",
-      "asesor",
-      "asesor técnico",
-      "asesor tecnico",
-      "contacto",
-      "que me llamen",
-      "me pueden llamar",
-      "cotización",
-      "cotizacion",
-      "cotizar",
-      "presupuesto",
-      "precio",
-      "costo"
-    ];
-    return keywords.some(k => t.includes(k));
-  }
-
   function detectIndustria(text) {
     const t = text.toLowerCase();
     if (t.includes("industria") || t.includes("sector") || t.includes("rubro")) {
@@ -118,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
-     CTA (AUTO)
+     CTA (CONTROLADO SOLO POR BACKEND)
      ====================== */
 
   function openLeadModal() {
@@ -131,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cta = document.createElement("div");
     cta.className = "cta-box";
     cta.innerHTML = `
-      <p><strong>Un técnico comercial puede evaluar tu caso directamente.</strong></p>
+      <p><strong>Un técnico comercial puede evaluar este caso.</strong></p>
       <button id="cta-btn">Dejar mis datos</button>
     `;
 
@@ -144,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Este es el disparador definitivo: muestra CTA y abre modal sin depender del click
   function triggerLeadCapture() {
     showCTA();
     openLeadModal();
@@ -164,15 +133,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!industria) industria = detectIndustria(text) || industria;
 
-    // Si el usuario pide contacto humano / cotización en el texto -> ABRIR MODAL YA
-    if (hasTechnicalIntent(text)) {
-      triggerLeadCapture();
-      return;
-    }
-
     const typing = document.createElement("div");
     typing.className = "ai-message";
-    typing.innerText = "Agustina está escribiendo...";
+    typing.innerText = "Lisa está analizando...";
     messagesDiv.appendChild(typing);
 
     try {
@@ -185,21 +148,30 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       typing.remove();
 
-      addMessage("assistant", data.reply);
-      messages.push({ role: "assistant", content: data.reply });
+      // 🔑 SIEMPRE mostramos la respuesta
+      if (data && data.reply) {
+        addMessage("assistant", data.reply);
+        messages.push({ role: "assistant", content: data.reply });
+      } else {
+        addMessage(
+          "assistant",
+          "Listo. Ya procesé la información solicitada."
+        );
+      }
 
-      // ✅ CLAVE: si el backend detecta intención -> ABRIR MODAL YA
+      // 🔑 CTA SOLO si el backend lo indica
       if (data && data.intent === true) {
         triggerLeadCapture();
       }
 
-    } catch {
-      typing.innerText = "Error de conexión. Intentá nuevamente.";
+    } catch (err) {
+      typing.remove();
+      addMessage("assistant", "Error de conexión. Intentá nuevamente.");
     }
   }
 
   /* ======================
-     FORMULARIO (SOLO CONTACTO)
+     FORMULARIO (CONTACTO)
      ====================== */
 
   leadCancel.addEventListener("click", () => {
@@ -210,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
     const payload = {
-      origen: "Chat Agustina Web",
+      origen: "Chat Lisa Web",
       empresa: document.getElementById("lead-company").value,
       nombre: document.getElementById("lead-name").value,
       email: document.getElementById("lead-email").value,
@@ -237,6 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
