@@ -25,6 +25,20 @@ function detectIntent(text) {
 }
 
 export default async function handler(req, res) {
+
+  /* ==========================
+     🔎 DIAGNÓSTICO DE ENTORNO
+     ========================== */
+  console.log("ENV CHECK", {
+    hasSystemPrompt: !!process.env.SYSTEM_PROMPT,
+    systemPromptLength: process.env.SYSTEM_PROMPT
+      ? process.env.SYSTEM_PROMPT.length
+      : 0,
+    hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+    appMode: process.env.APP_MODE,
+    hasWebhook: !!process.env.PROSPECTS_WEBHOOK_URL
+  });
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -39,7 +53,7 @@ export default async function handler(req, res) {
     const systemPrompt = process.env.SYSTEM_PROMPT;
 
     if (!systemPrompt) {
-      console.error("SYSTEM_PROMPT no definido");
+      console.error("SYSTEM_PROMPT no definido EN RUNTIME");
       return res.status(500).json({
         reply: "Error interno de configuración.",
         intent: false
@@ -58,7 +72,7 @@ export default async function handler(req, res) {
     let reply = completion.choices?.[0]?.message?.content || "";
 
     /* ==========================
-       CARGA DE PROSPECTOS LISA3
+       CARGA DE PROSPECTOS
        ========================== */
 
     const startTag = "<<<PROSPECTOS_JSON>>>";
@@ -87,13 +101,12 @@ export default async function handler(req, res) {
           }
         }
 
-        // 🔑 CLAVE: limpiamos el JSON del texto visible
+        // Limpieza del JSON para el texto visible
         reply = reply.replace(
           new RegExp(`${startTag}[\\s\\S]*?${endTag}`, "g"),
           ""
         ).trim();
 
-        // Si quedó vacío, ponemos respuesta humana mínima
         if (!reply) {
           reply = "Listo. Ya cargué los prospectos detectados en la planilla.";
         }
@@ -102,10 +115,6 @@ export default async function handler(req, res) {
         console.error("Error cargando prospectos:", e);
       }
     }
-
-    /* ==========================
-       INTENCIÓN COMERCIAL
-       ========================== */
 
     const lastUserMessage = [...messages]
       .reverse()
@@ -127,6 +136,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
