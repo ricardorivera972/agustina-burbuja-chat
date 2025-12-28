@@ -6,33 +6,22 @@ const openai = new OpenAI({
 });
 
 /**
- * Detecta SOLO intención comercial real
- * (abre formulario únicamente cuando corresponde)
+ * Detecta intención comercial REAL (no búsquedas)
  */
 function detectIntent(text) {
+  if (!text) return false;
+
   const t = text.toLowerCase();
 
-  // 👉 SOLO palabras que justifican contacto humano
-  const ctaKeywords = [
-    "cotización",
-    "cotizar",
-    "presupuesto",
-    "precio",
-    "costo",
-    "cuánto sale",
-    "cuanto sale",
-    "quiero que me llamen",
-    "llamame",
-    "contactame",
-    "contacto",
-    "hablar con un asesor",
-    "hablar con un técnico",
-    "necesito un asesor",
-    "necesito hablar",
-    "quiero hablar"
+  const keywords = [
+    "cotización", "cotizar", "presupuesto", "precio", "costo", "valor",
+    "comprar", "pedido", "fabricar", "producción",
+    "necesito que me coticen", "quiero encargar",
+    "hablar con un asesor", "contacto", "que me llamen",
+    "quiero avanzar", "necesito hablar"
   ];
 
-  return ctaKeywords.some(k => t.includes(k));
+  return keywords.some(k => t.includes(k));
 }
 
 export default async function handler(req, res) {
@@ -47,8 +36,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid messages format" });
     }
 
-    // Prompt desde variables de entorno
     const systemPrompt = process.env.SYSTEM_PROMPT;
+
+    if (!systemPrompt) {
+      console.error("SYSTEM_PROMPT no definido");
+      return res.status(500).json({
+        reply: "Error interno de configuración.",
+        intent: false
+      });
+    }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -59,11 +55,11 @@ export default async function handler(req, res) {
       ]
     });
 
-    const reply = completion.choices[0].message.content || "";
+    const reply = completion.choices?.[0]?.message?.content || "";
 
-    /* ===========================
-       LISA – CARGA DE PROSPECTOS
-       =========================== */
+    /* ==========================
+       CARGA DE PROSPECTOS LISA3
+       ========================== */
 
     const startTag = "<<<PROSPECTOS_JSON>>>";
     const endTag = "<<<FIN_PROSPECTOS_JSON>>>";
@@ -85,9 +81,7 @@ export default async function handler(req, res) {
           for (const prospect of prospects) {
             await fetch(process.env.PROSPECTS_WEBHOOK_URL, {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(prospect)
             });
           }
@@ -97,7 +91,9 @@ export default async function handler(req, res) {
       }
     }
 
-    /* ===== FIN CARGA ===== */
+    /* ==========================
+       INTENCIÓN COMERCIAL
+       ========================== */
 
     const lastUserMessage = [...messages]
       .reverse()
@@ -112,12 +108,14 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("API chat error:", error);
+
     return res.status(500).json({
       reply: "En este momento no puedo responder. Intentá nuevamente.",
       intent: false
     });
   }
 }
+
 
 
 
