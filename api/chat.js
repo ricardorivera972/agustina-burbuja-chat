@@ -55,7 +55,7 @@ export default async function handler(req, res) {
       ]
     });
 
-    const reply = completion.choices?.[0]?.message?.content || "";
+    let reply = completion.choices?.[0]?.message?.content || "";
 
     /* ==========================
        CARGA DE PROSPECTOS LISA3
@@ -86,6 +86,18 @@ export default async function handler(req, res) {
             });
           }
         }
+
+        // 🔑 CLAVE: limpiamos el JSON del texto visible
+        reply = reply.replace(
+          new RegExp(`${startTag}[\\s\\S]*?${endTag}`, "g"),
+          ""
+        ).trim();
+
+        // Si quedó vacío, ponemos respuesta humana mínima
+        if (!reply) {
+          reply = "Listo. Ya cargué los prospectos detectados en la planilla.";
+        }
+
       } catch (e) {
         console.error("Error cargando prospectos:", e);
       }
@@ -115,6 +127,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
