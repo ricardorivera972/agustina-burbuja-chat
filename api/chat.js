@@ -1,32 +1,38 @@
 import OpenAI from "openai";
-import fetch from "node-fetch"; // ✅ FIX CLAVE
+import fetch from "node-fetch";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
 /**
- * Detecta intención comercial o de derivación humana
- * (la UI decide qué hacer con esto)
+ * Detecta SOLO intención comercial real
+ * (abre formulario únicamente cuando corresponde)
  */
 function detectIntent(text) {
   const t = text.toLowerCase();
 
-  const keywords = [
-    "cotización", "cotizar", "presupuesto", "precio", "costo", "valor",
-    "cuánto sale", "cuanto sale",
-    "comprar", "pedido", "fabricar", "producción", "cantidad", "volumen",
-    "urgente", "plazo", "entrega",
-    "necesito", "requerimos", "quiero hacer", "quiero encargar",
-    "asesor", "asesor técnico", "asesoramiento",
-    "hablar con alguien", "hablar con un técnico", "hablar con un asesor",
-    "contacto", "que me llamen", "llamame", "me pueden llamar",
-    "derivame", "derivame a un asesor",
-    "quiero hablar", "necesito hablar",
-    "me contactan", "contactarme"
+  // 👉 SOLO palabras que justifican contacto humano
+  const ctaKeywords = [
+    "cotización",
+    "cotizar",
+    "presupuesto",
+    "precio",
+    "costo",
+    "cuánto sale",
+    "cuanto sale",
+    "quiero que me llamen",
+    "llamame",
+    "contactame",
+    "contacto",
+    "hablar con un asesor",
+    "hablar con un técnico",
+    "necesito un asesor",
+    "necesito hablar",
+    "quiero hablar"
   ];
 
-  return keywords.some(k => t.includes(k));
+  return ctaKeywords.some(k => t.includes(k));
 }
 
 export default async function handler(req, res) {
@@ -41,7 +47,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid messages format" });
     }
 
-    // 🔑 LISA4: prompt desde variables de entorno
+    // Prompt desde variables de entorno
     const systemPrompt = process.env.SYSTEM_PROMPT;
 
     const completion = await openai.chat.completions.create({
@@ -56,7 +62,7 @@ export default async function handler(req, res) {
     const reply = completion.choices[0].message.content || "";
 
     /* ===========================
-       LISA4 – CARGA DE PROSPECTOS
+       LISA – CARGA DE PROSPECTOS
        =========================== */
 
     const startTag = "<<<PROSPECTOS_JSON>>>";
@@ -91,7 +97,7 @@ export default async function handler(req, res) {
       }
     }
 
-    /* ===== FIN LISA4 ===== */
+    /* ===== FIN CARGA ===== */
 
     const lastUserMessage = [...messages]
       .reverse()
@@ -112,6 +118,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
