@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let presented = false;
   let ctaShown = false;
   const messages = [];
-
   let industria = "";
 
   /* ======================
@@ -88,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
-     CTA (CONTROLADO SOLO POR BACKEND)
+     CTA (CONTROLADO POR BACKEND)
      ====================== */
 
   function openLeadModal() {
@@ -145,21 +144,26 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ messages })
       });
 
-      const data = await res.json();
+      const rawText = await res.text();
       typing.remove();
 
-      // 🔑 SIEMPRE mostramos la respuesta
+      let data = null;
+
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        // ⚠️ NO es JSON: mostramos igual el texto
+        addMessage("assistant", rawText || "Respuesta recibida.");
+        return;
+      }
+
       if (data && data.reply) {
         addMessage("assistant", data.reply);
         messages.push({ role: "assistant", content: data.reply });
       } else {
-        addMessage(
-          "assistant",
-          "Listo. Ya procesé la información solicitada."
-        );
+        addMessage("assistant", "Listo. Ya procesé la información solicitada.");
       }
 
-      // 🔑 CTA SOLO si el backend lo indica
       if (data && data.intent === true) {
         triggerLeadCapture();
       }
@@ -209,6 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
