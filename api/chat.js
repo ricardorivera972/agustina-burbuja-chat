@@ -24,6 +24,28 @@ function detectIntent(text) {
   return keywords.some(k => t.includes(k));
 }
 
+/**
+ * PROMPT POR DEFECTO DE AGUSTINA
+ * (se usa si no hay SYSTEM_PROMPT en variables de entorno)
+ */
+const DEFAULT_SYSTEM_PROMPT = `
+Sos AGUSTINA, asistente virtual de atención inicial de Lasertec Ingeniería.
+
+Tu rol es:
+- Atender consultas generales sobre la empresa y sus servicios.
+- Responder de forma clara, cordial y profesional.
+- Detectar cuando una consulta tiene intención comercial o técnica.
+- Cuando detectes intención comercial o técnica, invitar amablemente a que el usuario deje sus datos para que un técnico comercial lo contacte.
+
+No hagas prospección profunda.
+No hagas análisis técnico avanzado.
+No presupuestes.
+No prometas precios ni plazos.
+
+Usá un tono cercano, simple y profesional.
+Siempre priorizá la claridad y la amabilidad.
+`;
+
 export default async function handler(req, res) {
 
   /* ==========================
@@ -50,15 +72,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid messages format" });
     }
 
-    const systemPrompt = process.env.SYSTEM_PROMPT;
-
-    if (!systemPrompt) {
-      console.error("SYSTEM_PROMPT no definido EN RUNTIME");
-      return res.status(500).json({
-        reply: "Error interno de configuración.",
-        intent: false
-      });
-    }
+    // Usa SYSTEM_PROMPT si existe, si no usa AGUSTINA por defecto
+    const systemPrompt =
+      process.env.SYSTEM_PROMPT || DEFAULT_SYSTEM_PROMPT;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -72,49 +88,12 @@ export default async function handler(req, res) {
     let reply = completion.choices?.[0]?.message?.content || "";
 
     /* ==========================
-       CARGA DE PROSPECTOS
+       ⚠️ BLOQUE LISA DESACTIVADO
        ========================== */
 
-    const startTag = "<<<PROSPECTOS_JSON>>>";
-    const endTag = "<<<FIN_PROSPECTOS_JSON>>>";
-
-    if (
-      process.env.APP_MODE === "LISA3" &&
-      reply.includes(startTag) &&
-      reply.includes(endTag)
-    ) {
-      try {
-        const jsonBlock = reply
-          .split(startTag)[1]
-          .split(endTag)[0]
-          .trim();
-
-        const prospects = JSON.parse(jsonBlock);
-
-        if (Array.isArray(prospects)) {
-          for (const prospect of prospects) {
-            await fetch(process.env.PROSPECTS_WEBHOOK_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(prospect)
-            });
-          }
-        }
-
-        // Limpieza del JSON para el texto visible
-        reply = reply.replace(
-          new RegExp(`${startTag}[\\s\\S]*?${endTag}`, "g"),
-          ""
-        ).trim();
-
-        if (!reply) {
-          reply = "Listo. Ya cargué los prospectos detectados en la planilla.";
-        }
-
-      } catch (e) {
-        console.error("Error cargando prospectos:", e);
-      }
-    }
+    // Este backend es AGUSTINA.
+    // No genera prospectos ni JSON automáticamente.
+    // La derivación se hace solo por intención detectada.
 
     const lastUserMessage = [...messages]
       .reverse()
@@ -136,6 +115,7 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
 
