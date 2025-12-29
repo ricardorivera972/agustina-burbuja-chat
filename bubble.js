@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
-     CTA (CONTROLADO POR BACKEND)
+     CTA
      ====================== */
 
   function openLeadModal() {
@@ -138,11 +138,14 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.appendChild(typing);
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages })
-      });
+      const res = await fetch(
+        "https://lisa4-prospeccion.vercel.app/api/chat",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages })
+        }
+      );
 
       const rawText = await res.text();
       typing.remove();
@@ -152,7 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         data = JSON.parse(rawText);
       } catch {
-        // ⚠️ NO es JSON: mostramos igual el texto
         addMessage("assistant", rawText || "Respuesta recibida.");
         return;
       }
@@ -175,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ======================
-     FORMULARIO (CONTACTO)
+     FORMULARIO
      ====================== */
 
   leadCancel.addEventListener("click", () => {
@@ -196,11 +198,14 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      const res = await fetch("/api/lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const res = await fetch(
+        "https://lisa4-prospeccion.vercel.app/api/lead",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }
+      );
 
       if (!res.ok) throw new Error();
 
@@ -213,6 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
