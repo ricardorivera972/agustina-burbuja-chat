@@ -138,14 +138,11 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.appendChild(typing);
 
     try {
-      const res = await fetch(
-        "https://lisa4-prospeccion.vercel.app/api/chat",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages })
-        }
-      );
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages })
+      });
 
       const rawText = await res.text();
       typing.remove();
@@ -198,14 +195,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      const res = await fetch(
-        "https://lisa4-prospeccion.vercel.app/api/lead",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
-      );
+      const res = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
       if (!res.ok) throw new Error();
 
@@ -218,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
