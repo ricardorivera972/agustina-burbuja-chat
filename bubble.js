@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!presented) {
       addMessage(
         "assistant",
-        "Hola, soy LISA, asistente de prospección comercial de Lasertec Ingeniería. ¿Qué tipo de empresas o sectores querés analizar?"
+        "Hola, soy Agustina, asistente virtual de atención de Lasertec Ingeniería. ¿En qué puedo ayudarte?"
       );
       presented = true;
     }
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const typing = document.createElement("div");
     typing.className = "ai-message";
-    typing.innerText = "Lisa está analizando...";
+    typing.innerText = "Agustina está analizando...";
     messagesDiv.appendChild(typing);
 
     try {
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
     const payload = {
-      origen: "Chat Lisa Web",
+      origen: "Chat Agustina Web",
       empresa: document.getElementById("lead-company").value,
       nombre: document.getElementById("lead-name").value,
       email: document.getElementById("lead-email").value,
@@ -212,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 
 
