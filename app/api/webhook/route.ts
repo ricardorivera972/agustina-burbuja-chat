@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwsUCGrl7mda5qfpIenrNMh7R-_1bO6nnKUthPnehTs7UQLcdH2Cdc-S6l75LLhOZfkIQ/exec";
+  "https://script.google.com/macros/s/AKfycbyJk9XxfxSX5e0AKEYSVrL-1pSMK1LuuK2z1rFkKsl7vwrTe7UUTNvjNMwQQiND3pubRg/exec";
 
 export async function GET() {
   return NextResponse.json({
@@ -23,23 +23,91 @@ export async function POST(req: Request) {
       payload = Object.fromEntries(form.entries());
     }
 
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      body: new URLSearchParams(payload),
-    });
+    // ✅ Timeout profesional
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+
+    let response;
+
+    try {
+      response = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: new URLSearchParams(payload),
+        signal: controller.signal,
+      });
+    } catch {
+      return NextResponse.json({
+        ok: false,
+        duplicated: false,
+        saved: false,
+        message:
+          "No se pudo conectar con la planilla. Intentá nuevamente.",
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const text = await response.text();
 
-    return NextResponse.json({
-      ok: response.ok,
-      status: response.status,
-      preview: text.slice(0, 120),
-    });
+    if (!text || text.trim() === "") {
+      return NextResponse.json({
+        ok: false,
+        duplicated: false,
+        saved: false,
+        message:
+          "La planilla no respondió correctamente.",
+      });
+    }
+
+    try {
+      const parsed = JSON.parse(text);
+
+      if (parsed?.status === "EXISTS") {
+        return NextResponse.json({
+          ok: true,
+          duplicated: true,
+          saved: false,
+          message:
+            "Este prospecto ya estaba cargado en la planilla.",
+        });
+      }
+
+      if (parsed?.status === "SAVED") {
+        return NextResponse.json({
+          ok: true,
+          duplicated: false,
+          saved: true,
+          message:
+            "Prospecto guardado correctamente.",
+        });
+      }
+
+      return NextResponse.json({
+        ok: false,
+        duplicated: false,
+        saved: false,
+        message:
+          "La planilla respondió en un formato inesperado.",
+      });
+
+    } catch {
+      return NextResponse.json({
+        ok: false,
+        duplicated: false,
+        saved: false,
+        message:
+          "Respuesta inválida desde la planilla.",
+      });
+    }
 
   } catch (err: any) {
     return NextResponse.json(
       {
         ok: false,
+        duplicated: false,
+        saved: false,
+        message:
+          "Error interno del servidor.",
         error: err?.message || String(err),
       },
       { status: 500 }

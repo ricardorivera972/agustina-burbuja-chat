@@ -21,22 +21,26 @@ type Prospect = {
   mail_sugerido?: string;
 };
 
+/* 🔥 DETECCIÓN DE GUARDADO — ROBUSTA */
 function wantsSave(text: string) {
-  const t = text.toLowerCase();
+  const t = text.toLowerCase().trim();
+
   return (
-    t.includes("si") ||
+    t === "si" ||
+    t === "sí" ||
+    t === "ok" ||
+    t === "dale" ||
+    t === "perfecto" ||
+    t.includes("carg") ||
     t.includes("guard") ||
-    t.includes("dale") ||
-    t.includes("ok") ||
-    t.includes("perfecto")
+    t.includes("regist") ||
+    t.includes("agreg") ||
+    t.includes("sum") ||
+    t.includes("asign") ||
+    t.includes("planilla")
   );
 }
 
-function wantsCancel(text: string) {
-  return text.trim().toLowerCase() === "no";
-}
-
-/* 🔥 FUNCIÓN CLAVE — BLINDADA */
 function pick(obj: any, ...keys: string[]) {
   for (const k of keys) {
     if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") {
@@ -48,42 +52,43 @@ function pick(obj: any, ...keys: string[]) {
 
 function extractJson(reply: string): Prospect | null {
   try {
-    const obj = JSON.parse(reply);
+    let clean = reply.trim();
+
+    const match = clean.match(/```json([\s\S]*?)```/i);
+
+    if (match) {
+      clean = match[1].trim();
+    } else {
+      const first = clean.indexOf("{");
+      const last = clean.lastIndexOf("}");
+
+      if (first !== -1 && last !== -1) {
+        clean = clean.slice(first, last + 1);
+      }
+    }
+
+    const obj = JSON.parse(clean);
+
+    const empresa = pick(obj, "Empresa");
+    if (!empresa) return null;
 
     return {
-      empresa: pick(obj, "Empresa"),
+      empresa,
       rubro: pick(obj, "Rubro"),
-
       ubicacion: pick(obj, "Ubicacion", "Ubicación"),
-
       web: pick(obj, "Web oficial"),
-
       telefono_institucional: pick(
         obj,
         "Telefono institucional",
         "Teléfono institucional"
       ),
-
       email_institucional: pick(obj, "Email institucional"),
-
       mensaje_inicial: pick(obj, "Mensaje inicial sugerido"),
 
       cargo_sugerido: pick(obj, "Cargo sugerido"),
-
-      // 🔥 LOS QUE FALLABAN
       area_sugerida: pick(obj, "Area sugerida", "Área sugerida"),
-
-      telefono_sugerido: pick(
-        obj,
-        "Telefono sugerido",
-        "Teléfono sugerido"
-      ),
-
-      mail_sugerido: pick(
-        obj,
-        "Mail sugerido",
-        "Email sugerido"
-      ),
+      telefono_sugerido: pick(obj, "Telefono sugerido", "Teléfono sugerido"),
+      mail_sugerido: pick(obj, "Mail sugerido", "Email sugerido"),
     };
   } catch {
     return null;
@@ -107,6 +112,7 @@ Teléfono sugerido: ${p.telefono_sugerido || "-"}
 Mail sugerido: ${p.mail_sugerido || "-"}`;
 }
 
+/* 🔥 NUEVO — ahora entiende saved / duplicated */
 async function saveProspect(p: Prospect) {
   const params = new URLSearchParams();
 
@@ -129,7 +135,24 @@ async function saveProspect(p: Prospect) {
   });
 
   const data = await res.json();
-  return data?.ok === true;
+
+  return {
+    saved: data?.saved === true,
+    duplicated: data?.duplicated === true,
+  };
+}
+
+function buildContextMessage(userText: string, p: Prospect) {
+  return `Estamos analizando ESTA empresa:
+
+Empresa: ${p.empresa}
+Rubro: ${p.rubro}
+Ubicación: ${p.ubicacion}
+
+Respondé la pregunta del usuario SIN reiniciar el análisis ni generar otra empresa.
+
+Pregunta:
+${userText}`;
 }
 
 export default function ChatPage() {
@@ -145,40 +168,38 @@ export default function ChatPage() {
     setInput("");
 
     try {
-      if (pendingProspect) {
-        if (wantsSave(text)) {
-          const ok = await saveProspect(pendingProspect);
+      /* 🔥 GUARDADO PROFESIONAL */
+      if (pendingProspect && wantsSave(text)) {
+        const result = await saveProspect(pendingProspect);
 
-          setMsgs((m) => [
-            ...m,
-            {
-              who: "LISA",
-              text: ok
-                ? "Prospecto guardado correctamente en la planilla."
-                : "No pude guardarlo.",
-            },
-          ]);
+        let message = "No se pudo guardar el prospecto.";
 
-          setPendingProspect(null);
-          return;
+        if (result.saved) {
+          message = "Listo. Prospecto guardado en la planilla.";
+        } 
+        else if (result.duplicated) {
+          message = "Este prospecto ya estaba cargado en la planilla.";
         }
 
-        if (wantsCancel(text)) {
-          setMsgs((m) => [
-            ...m,
-            {
-              who: "LISA",
-              text: "Perfecto. Lo dejamos en espera.",
-            },
-          ]);
-          return;
-        }
+        setMsgs((m) => [
+          ...m,
+          {
+            who: "LISA",
+            text: message,
+          },
+        ]);
+
+        return;
       }
+
+      const messageToSend = pendingProspect
+        ? buildContextMessage(text, pendingProspect)
+        : text;
 
       const r = await fetch("/api/lisa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: messageToSend }),
       });
 
       const data = await r.json();
@@ -192,7 +213,11 @@ export default function ChatPage() {
           { who: "LISA", text: formatProspect(parsed) },
           {
             who: "LISA",
-            text: "¿Querés guardar este prospecto en la planilla?",
+            text:
+              "¿Qué preferís hacer ahora?\n" +
+              "- Analizamos si este prospecto es viable para LASERTEC\n" +
+              "- Lo cargamos directamente en la planilla\n" +
+              "- O lo descartamos y buscamos otro",
           },
         ]);
 
