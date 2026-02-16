@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyJk9XxfxSX5e0AKEYSVrL-1pSMK1LuuK2z1rFkKsl7vwrTe7UUTNvjNMwQQiND3pubRg/exec";
+  "https://script.google.com/macros/s/AKfycbwcveUls1-w3UJ1l92p-SiF108YAJBlqjOYW5b02ozzM2nSn1jNjKV2mgGlAIwnsAtFiQ/exec";
 
 export async function GET() {
   return NextResponse.json({
@@ -23,7 +23,6 @@ export async function POST(req: Request) {
       payload = Object.fromEntries(form.entries());
     }
 
-    // ✅ Timeout profesional
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 12000);
 
