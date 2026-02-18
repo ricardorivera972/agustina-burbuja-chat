@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const SYSTEM_PROMPT = `...`; // ⚠️ Pegá aquí tu SYSTEM_PROMPT completo original
+const SYSTEM_PROMPT = `
+PEGÁ AQUÍ TU SYSTEM_PROMPT COMPLETO EXACTAMENTE COMO LO TENÍAS
+SIN MODIFICAR NADA
+`;
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 🔥 memoria simple en runtime (último prospecto generado)
+// 🔥 memoria simple en runtime
 let ultimoProspecto: any = null;
 
 export async function POST(req: Request) {
@@ -24,7 +27,10 @@ export async function POST(req: Request) {
 
     const webhookUrl = process.env.GOOGLE_WEBHOOK_URL;
 
-    // 🔥 Si el usuario quiere registrar
+    // ============================================
+    // 🔥 REGISTRO EN GOOGLE SHEETS
+    // ============================================
+
     if (
       userMessage.toLowerCase().includes("registr")
       && ultimoProspecto
@@ -64,14 +70,17 @@ export async function POST(req: Request) {
           });
         }
 
-      } catch (error) {
+      } catch {
         return NextResponse.json({
           reply: "❌ Error enviando datos al webhook.",
         });
       }
     }
 
-    // 🔥 Flujo normal de generación
+    // ============================================
+    // 🔥 GENERACIÓN NORMAL CON OPENAI
+    // ============================================
+
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
       temperature: 0.2,
@@ -83,21 +92,30 @@ export async function POST(req: Request) {
 
     const texto = response.output_text || "";
 
-    // 🔥 Intentar detectar JSON de prospecto
+    // ============================================
+    // 🔥 DETECCIÓN AUTOMÁTICA DE JSON DE PROSPECTO
+    // ============================================
+
     try {
       const posibleJson = JSON.parse(texto);
-      if (posibleJson?.Empresa) {
+
+      if (
+        posibleJson &&
+        typeof posibleJson === "object" &&
+        posibleJson.Empresa
+      ) {
         ultimoProspecto = posibleJson;
       }
+
     } catch {
-      // No era JSON válido
+      // No era JSON válido, no hacemos nada
     }
 
     return NextResponse.json({
       reply: texto,
     });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { reply: "ERROR DEL SERVIDOR" },
       { status: 500 }
