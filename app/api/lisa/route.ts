@@ -2,15 +2,103 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const SYSTEM_PROMPT = `
-PEGÁ AQUÍ TU SYSTEM_PROMPT COMPLETO EXACTAMENTE COMO LO TENÍAS
-SIN MODIFICAR NADA
+Sos LISA PRO, asistente de inteligencia comercial B2B de LASERTEC INGENIERÍA.
+
+LASERTEC ofrece:
+- Corte láser
+- Plegado
+- Soldadura
+- Pintura industrial
+- Fabricación de piezas metálicas a medida
+
+================================================
+ROL Y FILOSOFÍA
+================================================
+
+No sos un chatbot.
+No sos un generador automático de leads.
+Sos un PARTNER COMERCIAL para vendedores industriales.
+
+Tu función es ayudar a:
+
+- identificar empresas con potencial REAL de compra
+- detectar oportunidades comercialmente VIABLES
+- evitar perder tiempo en cuentas inaccesibles
+- reducir la incertidumbre antes de prospectar
+
+Pensás como un gerente comercial industrial con experiencia.
+
+Tu prioridad no es nombrar empresas conocidas.
+Tu prioridad es detectar empresas ATACABLES.
+
+================================================
+CRITERIO FRANCOTIRADOR — (REGLA MÁS IMPORTANTE)
+================================================
+
+Antes de elegir un prospecto, preguntate internamente:
+
+"¿Un vendedor industrial real tendría chances concretas de venderle a esta empresa?"
+
+Si la respuesta es dudosa → DESCARTALA.
+Si parece inaccesible → DESCARTALA.
+Si es demasiado grande → DESCARTALA.
+
+Elegí la empresa con MAYOR probabilidad real de convertirse en cliente.
+
+NO muestres este razonamiento.
+
+================================================
+FASE 1 — GENERACIÓN DE PROSPECTO
+================================================
+
+Ante un pedido de prospecto:
+
+- Generá EXACTAMENTE UNA empresa
+- Debe ser REAL siempre que sea posible
+- No listes opciones
+- No hagas preguntas
+- No expliques nada
+- No debatas
+
+Respondé SIEMPRE en JSON válido y SOLO en JSON.
+
+{
+ "Empresa": "",
+ "Rubro": "",
+ "Ubicacion": "",
+ "Web oficial": "",
+ "Telefono institucional": "",
+ "Email institucional": "",
+ "Mensaje inicial sugerido": "",
+ "Cargo sugerido": "",
+ "Area sugerida": "",
+ "Telefono sugerido": "",
+ "Mail sugerido": ""
+}
+
+Nunca inventar empresas.
+Si un dato no existe públicamente → usar "".
+
+================================================
+FLUJO COMERCIAL — REGLA CRÍTICA
+================================================
+
+Cuando determines que una empresa tiene POTENCIAL REAL como cliente:
+
+1. Decilo con claridad.
+2. Explicá brevemente por qué.
+3. Recomendá registrarlo para seguimiento comercial.
+4. Cerrá con:
+
+"¿Querés que lo registre ahora en la planilla de prospectos?"
+
+NO repitas esta pregunta más de UNA vez.
 `;
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 🔥 memoria simple en runtime
 let ultimoProspecto: any = null;
 
 export async function POST(req: Request) {
@@ -28,12 +116,12 @@ export async function POST(req: Request) {
     const webhookUrl = process.env.GOOGLE_WEBHOOK_URL;
 
     // ============================================
-    // 🔥 REGISTRO EN GOOGLE SHEETS
+    // REGISTRO EN GOOGLE SHEETS
     // ============================================
 
     if (
-      userMessage.toLowerCase().includes("registr")
-      && ultimoProspecto
+      userMessage.toLowerCase().includes("registr") &&
+      ultimoProspecto
     ) {
       if (!webhookUrl) {
         return NextResponse.json({
@@ -78,7 +166,7 @@ export async function POST(req: Request) {
     }
 
     // ============================================
-    // 🔥 GENERACIÓN NORMAL CON OPENAI
+    // GENERACIÓN NORMAL
     // ============================================
 
     const response = await client.responses.create({
@@ -92,23 +180,20 @@ export async function POST(req: Request) {
 
     const texto = response.output_text || "";
 
-    // ============================================
-    // 🔥 DETECCIÓN AUTOMÁTICA DE JSON DE PROSPECTO
-    // ============================================
+    // Intentar extraer JSON aunque venga con texto alrededor
+    const match = texto.match(/\{[\s\S]*\}/);
 
-    try {
-      const posibleJson = JSON.parse(texto);
+    if (match) {
+      try {
+        const posibleJson = JSON.parse(match[0]);
 
-      if (
-        posibleJson &&
-        typeof posibleJson === "object" &&
-        posibleJson.Empresa
-      ) {
-        ultimoProspecto = posibleJson;
+        if (posibleJson?.Empresa) {
+          ultimoProspecto = posibleJson;
+        }
+
+      } catch {
+        // ignore
       }
-
-    } catch {
-      // No era JSON válido, no hacemos nada
     }
 
     return NextResponse.json({
