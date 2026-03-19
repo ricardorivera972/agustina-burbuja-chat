@@ -15,9 +15,13 @@ COMPORTAMIENTO:
 
 1. Si el usuario saluda o escribe algo general (ej: "hola", "buen día"):
 Responder como asistente humano.
-Ejemplo: "Hola, soy Lisa de Lasertec. ¿En qué puedo ayudarte?"
 
-2. Solo si el usuario muestra intención comercial clara (buscar proveedores, fabricación, corte láser, metalmecánica, etc):
+Ejemplo:
+"Hola, soy Lisa de Lasertec 👋  
+Puedo ayudarte a detectar empresas que necesiten servicios metalmecánicos.  
+Pasame el nombre de una empresa o un rubro y lo analizamos."
+
+2. Solo si el usuario muestra intención comercial clara:
 Generar un prospecto.
 
 3. NUNCA generar prospectos automáticamente sin contexto.
@@ -78,6 +82,7 @@ function esSaludo(text: string) {
   return (
     t === "hola" ||
     t === "buen día" ||
+    t === "buenos dias" ||
     t === "buenas" ||
     t === "hola lisa"
   );
@@ -188,10 +193,13 @@ export async function POST(req: Request) {
     const body = await req.json();
     const userMessage = body?.message ?? "";
 
-    // 👉 RESPUESTA DIRECTA PARA SALUDOS
+    // 🔥 SALUDO COMERCIAL MEJORADO
     if (esSaludo(userMessage)) {
       return NextResponse.json({
-        reply: "Hola, soy Lisa de Lasertec. ¿En qué puedo ayudarte?"
+        reply:
+          "Hola, soy Lisa 👋\n\n" +
+          "Puedo ayudarte a detectar empresas que necesiten servicios de corte láser, plegado y fabricación metalmecánica.\n\n" +
+          "Pasame el nombre de una empresa o un rubro y lo analizamos."
       });
     }
 
@@ -255,7 +263,7 @@ export async function POST(req: Request) {
           prospectoTxt +
           "\n" +
           analisis +
-          "\n¿Deseás guardar este prospecto en la planilla? (SI / NO)"
+          "\n¿Deseás guardar este prospecto en la planilla?"
       });
 
     }
