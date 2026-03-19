@@ -2,10 +2,6 @@
 
 import { useState } from "react";
 
-const SHEETS_WEBHOOK_URL = "/api/webhook";
-
-type Msg = { who: "YO" | "LISA"; text: string };
-
 type Prospect = {
   empresa: string;
   rubro: string;
@@ -21,24 +17,20 @@ type Prospect = {
   mail_sugerido?: string;
 };
 
-/* 🔥 DETECCIÓN DE GUARDADO — ROBUSTA */
+type Msg = {
+  who: "YO" | "LISA";
+  text: string;
+  prospect?: Prospect;
+};
+
 function wantsSave(text: string) {
   const t = text.toLowerCase().trim();
+  return t === "si" || t === "sí";
+}
 
-  return (
-    t === "si" ||
-    t === "sí" ||
-    t === "ok" ||
-    t === "dale" ||
-    t === "perfecto" ||
-    t.includes("carg") ||
-    t.includes("guard") ||
-    t.includes("regist") ||
-    t.includes("agreg") ||
-    t.includes("sum") ||
-    t.includes("asign") ||
-    t.includes("planilla")
-  );
+function wantsNo(text: string) {
+  const t = text.toLowerCase().trim();
+  return t === "no";
 }
 
 function pick(obj: any, ...keys: string[]) {
@@ -52,23 +44,11 @@ function pick(obj: any, ...keys: string[]) {
 
 function extractJson(reply: string): Prospect | null {
   try {
-    let clean = reply.trim();
+    const first = reply.indexOf("{");
+    const last = reply.lastIndexOf("}");
+    if (first === -1 || last === -1) return null;
 
-    const match = clean.match(/```json([\s\S]*?)```/i);
-
-    if (match) {
-      clean = match[1].trim();
-    } else {
-      const first = clean.indexOf("{");
-      const last = clean.lastIndexOf("}");
-
-      if (first !== -1 && last !== -1) {
-        clean = clean.slice(first, last + 1);
-      }
-    }
-
-    const obj = JSON.parse(clean);
-
+    const obj = JSON.parse(reply.slice(first, last + 1));
     const empresa = pick(obj, "Empresa");
     if (!empresa) return null;
 
@@ -77,82 +57,54 @@ function extractJson(reply: string): Prospect | null {
       rubro: pick(obj, "Rubro"),
       ubicacion: pick(obj, "Ubicacion", "Ubicación"),
       web: pick(obj, "Web oficial"),
-      telefono_institucional: pick(
-        obj,
-        "Telefono institucional",
-        "Teléfono institucional"
-      ),
+      telefono_institucional: pick(obj, "Telefono institucional"),
       email_institucional: pick(obj, "Email institucional"),
       mensaje_inicial: pick(obj, "Mensaje inicial sugerido"),
-
       cargo_sugerido: pick(obj, "Cargo sugerido"),
-      area_sugerida: pick(obj, "Area sugerida", "Área sugerida"),
-      telefono_sugerido: pick(obj, "Telefono sugerido", "Teléfono sugerido"),
-      mail_sugerido: pick(obj, "Mail sugerido", "Email sugerido"),
+      area_sugerida: pick(obj, "Area sugerida"),
+      telefono_sugerido: pick(obj, "Telefono sugerido"),
+      mail_sugerido: pick(obj, "Mail sugerido"),
     };
   } catch {
     return null;
   }
 }
 
-function formatProspect(p: Prospect) {
-  return `Empresa: ${p.empresa}
-Rubro: ${p.rubro}
-Ubicación: ${p.ubicacion}
-Web: ${p.web}
-Teléfono institucional: ${p.telefono_institucional}
-Email institucional: ${p.email_institucional}
-
-Mensaje inicial:
-${p.mensaje_inicial}
-
-Cargo sugerido: ${p.cargo_sugerido || "-"}
-Área sugerida: ${p.area_sugerida || "-"}
-Teléfono sugerido: ${p.telefono_sugerido || "-"}
-Mail sugerido: ${p.mail_sugerido || "-"}`;
+function extractAfterJson(reply: string) {
+  const last = reply.lastIndexOf("}");
+  if (last === -1) return reply.trim();
+  return reply.slice(last + 1).trim();
 }
 
-/* 🔥 NUEVO — ahora entiende saved / duplicated */
-async function saveProspect(p: Prospect) {
-  const params = new URLSearchParams();
+function cleanPhone(v?: string) {
+  if (!v) return "";
+  const digits = v.replace(/\D/g, "");
 
-  params.append("Empresa", p.empresa);
-  params.append("Rubro", p.rubro);
-  params.append("Ubicacion", p.ubicacion);
-  params.append("Web oficial", p.web);
-  params.append("Telefono institucional", p.telefono_institucional);
-  params.append("Email institucional", p.email_institucional);
-  params.append("Mensaje inicial sugerido", p.mensaje_inicial);
+  if (digits.length < 8) return "";
+  if (/123456/.test(digits)) return "";
+  if (/(\d)\1{5,}/.test(digits)) return "";
 
-  params.append("Cargo sugerido", p.cargo_sugerido || "");
-  params.append("Area sugerida", p.area_sugerida || "");
-  params.append("Telefono sugerido", p.telefono_sugerido || "");
-  params.append("Mail sugerido", p.mail_sugerido || "");
-
-  const res = await fetch(SHEETS_WEBHOOK_URL, {
-    method: "POST",
-    body: params,
-  });
-
-  const data = await res.json();
-
-  return {
-    saved: data?.saved === true,
-    duplicated: data?.duplicated === true,
-  };
+  return digits;
 }
 
-function buildContextMessage(userText: string, p: Prospect) {
-  return `Estamos analizando ESTA empresa:
+function normalizeFront(p: Prospect): Prospect {
+  const telInst = cleanPhone(p.telefono_institucional);
+  const telSug = cleanPhone(p.telefono_sugerido);
 
-Empresa: ${p.empresa}
-Rubro: ${p.rubro}
-Ubicación: ${p.ubicacion}
+  p.telefono_institucional = telInst;
 
-Respondé la pregunta del usuario SIN reiniciar el análisis ni generar otra empresa.
+  if (telInst && telSug && telInst === telSug) {
+    p.telefono_sugerido = "";
+  }
 
-Pregunta:
-${userText}`;
+  const mailInst = (p.email_institucional || "").trim().toLowerCase();
+  const mailSug = (p.mail_sugerido || "").trim().toLowerCase();
+
+  if (mailInst && mailSug && mailInst === mailSug) {
+    p.mail_sugerido = "";
+  }
+
+  return p;
 }
 
 export default function ChatPage() {
@@ -167,83 +119,176 @@ export default function ChatPage() {
     setMsgs((m) => [...m, { who: "YO", text }]);
     setInput("");
 
-    try {
-      /* 🔥 GUARDADO PROFESIONAL */
-      if (pendingProspect && wantsSave(text)) {
-        const result = await saveProspect(pendingProspect);
+    /* =================================
+       GUARDAR PROSPECTO
+    ================================= */
 
-        let message = "No se pudo guardar el prospecto.";
+    if (pendingProspect && wantsSave(text)) {
+
+      try {
+
+        const payload = {
+          Empresa: pendingProspect.empresa,
+          Rubro: pendingProspect.rubro,
+          Ubicacion: pendingProspect.ubicacion,
+          Web: pendingProspect.web,
+          Mensaje: pendingProspect.mensaje_inicial,
+          "Cargo sugerido": pendingProspect.cargo_sugerido || "",
+          "Area sugerida": pendingProspect.area_sugerida || ""
+        };
+
+        const r = await fetch("/api/webhook", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await r.json();
+
+        console.log("Respuesta webhook:", result);
+
+        setPendingProspect(null);
 
         if (result.saved) {
-          message = "Listo. Prospecto guardado en la planilla.";
-        } 
-        else if (result.duplicated) {
-          message = "Este prospecto ya estaba cargado en la planilla.";
+
+          setMsgs((m) => [
+            ...m,
+            { who: "LISA", text: "Prospecto guardado correctamente en la planilla." }
+          ]);
+
+        } else {
+
+          setMsgs((m) => [
+            ...m,
+            {
+              who: "LISA",
+              text:
+                "Error al guardar el prospecto.\n\n" +
+                "Dónde falló: " + (result.where || "desconocido") + "\n" +
+                "Detalle: " + (result.error || JSON.stringify(result))
+            }
+          ]);
+
         }
 
-        setMsgs((m) => [
-          ...m,
-          {
-            who: "LISA",
-            text: message,
-          },
-        ]);
-
-        return;
-      }
-
-      const messageToSend = pendingProspect
-        ? buildContextMessage(text, pendingProspect)
-        : text;
-
-      const r = await fetch("/api/lisa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageToSend }),
-      });
-
-      const data = await r.json();
-      const parsed = extractJson(data.reply);
-
-      if (parsed) {
-        setPendingProspect(parsed);
+      } catch (err: any) {
 
         setMsgs((m) => [
           ...m,
-          { who: "LISA", text: formatProspect(parsed) },
           {
             who: "LISA",
             text:
-              "¿Qué preferís hacer ahora?\n" +
-              "- Analizamos si este prospecto es viable para LASERTEC\n" +
-              "- Lo cargamos directamente en la planilla\n" +
-              "- O lo descartamos y buscamos otro",
-          },
+              "Error de conexión con el servidor.\n\n" +
+              (err?.message || "Error desconocido")
+          }
         ]);
 
-        return;
       }
 
-      setMsgs((m) => [...m, { who: "LISA", text: data.reply }]);
-    } catch {
+      return;
+    }
+
+    if (pendingProspect && wantsNo(text)) {
+      setPendingProspect(null);
+      setMsgs((m) => [...m, { who: "LISA", text: "Prospecto descartado." }]);
+      return;
+    }
+
+    /* =================================
+       CONSULTA NORMAL A LISA
+    ================================= */
+
+    const r = await fetch("/api/lisa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }),
+    });
+
+    const data = await r.json();
+    const parsed = extractJson(data.reply);
+
+    if (parsed) {
+      const clean = normalizeFront(parsed);
+      setPendingProspect(clean);
+
+      const comercial = extractAfterJson(data.reply);
+
       setMsgs((m) => [
         ...m,
-        {
-          who: "LISA",
-          text: "Error inesperado.",
-        },
+        { who: "LISA", text: "", prospect: clean },
+        ...(comercial ? [{ who: "LISA", text: comercial }] : []),
       ]);
+      return;
     }
+
+    setMsgs((m) => [...m, { who: "LISA", text: data.reply }]);
   }
 
   return (
     <div style={{ padding: 40, fontFamily: "Arial" }}>
       <h1>Lisa</h1>
 
-      <div style={{ marginTop: 20, whiteSpace: "pre-wrap" }}>
+      <div style={{ marginTop: 20 }}>
         {msgs.map((m, i) => (
-          <div key={i}>
-            <b>{m.who}:</b> {m.text}
+          <div key={i} style={{ marginBottom: 20 }}>
+            <b>{m.who}:</b>
+
+            {m.prospect ? (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 20,
+                  border: "1px solid #ddd",
+                  borderRadius: 10,
+                  background: "#f9f9f9",
+                }}
+              >
+                <h2 style={{ margin: 0 }}>{m.prospect.empresa}</h2>
+
+                {m.prospect.rubro && (
+                  <p><b>Rubro:</b> {m.prospect.rubro}</p>
+                )}
+
+                {m.prospect.ubicacion && (
+                  <p><b>Ubicación:</b> {m.prospect.ubicacion}</p>
+                )}
+
+                {m.prospect.web && (
+                  <p>
+                    <b>Web oficial:</b>{" "}
+                    <a href={m.prospect.web} target="_blank">
+                      {m.prospect.web}
+                    </a>
+                  </p>
+                )}
+
+                <hr />
+
+                {m.prospect.cargo_sugerido && (
+                  <p><b>Cargo sugerido:</b> {m.prospect.cargo_sugerido}</p>
+                )}
+
+                {m.prospect.area_sugerida && (
+                  <p><b>Área sugerida:</b> {m.prospect.area_sugerida}</p>
+                )}
+
+                {m.prospect.mensaje_inicial && (
+                  <>
+                    <hr />
+                    <p><b>Mensaje inicial sugerido:</b></p>
+                    <p style={{ whiteSpace: "pre-wrap" }}>
+                      {m.prospect.mensaje_inicial}
+                    </p>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div style={{ whiteSpace: "pre-wrap", marginTop: 5 }}>
+                {m.text}
+              </div>
+            )}
           </div>
         ))}
       </div>

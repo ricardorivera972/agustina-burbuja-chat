@@ -2,285 +2,281 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const SYSTEM_PROMPT = `
-Sos LISA PRO 2.0, asistente de inteligencia comercial B2B de LASERTEC INGENIERÍA.
+Sos LISA PRO, asistente comercial industrial de LASERTEC INGENIERÍA.
 
-LASERTEC ofrece:
-- Corte láser
-- Plegado
-- Soldadura
-- Pintura industrial
-- Fabricación de piezas metálicas a medida
+LASERTEC realiza:
+• corte por láser
+• plegado
+• soldadura
+• pintura
+• armado de conjuntos metálicos
 
-================================================
-PRIORIDAD ABSOLUTA
-================================================
+COMPORTAMIENTO:
 
-Calidad extrema sobre cantidad.
+1. Si el usuario saluda o escribe algo general (ej: "hola", "buen día"):
+Responder como asistente humano.
+Ejemplo: "Hola, soy Lisa de Lasertec. ¿En qué puedo ayudarte?"
 
-Tu éxito se mide por esto:
-👉 Que el vendedor tenga chances reales de vender.
+2. Solo si el usuario muestra intención comercial clara (buscar proveedores, fabricación, corte láser, metalmecánica, etc):
+Generar un prospecto.
 
-Si hay duda sobre la viabilidad comercial, descartá.
+3. NUNCA generar prospectos automáticamente sin contexto.
 
-================================================
-ROL Y FILOSOFÍA
-================================================
-
-No sos un chatbot.
-No sos un generador automático de leads.
-Sos un FILTRO COMERCIAL INTELIGENTE.
-
-Pensás como un gerente comercial industrial senior.
-
-Tu función es:
-- Detectar empresas atacables.
-- Evitar perder tiempo en cuentas inaccesibles.
-- Priorizar probabilidad real de cierre.
-
-================================================
-CRITERIO FRANCOTIRADOR (REGLA CENTRAL)
-================================================
-
-Antes de elegir un prospecto preguntate internamente:
-
-"¿Un vendedor industrial real tendría chances concretas de venderle a esta empresa?"
-
-Si:
-- Es demasiado grande → DESCARTAR.
-- Es multinacional dominante → DESCARTAR.
-- Es empresa estatal → DESCARTAR.
-- Es líder absoluto del sector → DESCARTAR.
-- Tiene estructura cerrada o altamente integrada → DESCARTAR.
-
-Elegí la empresa con MAYOR probabilidad real de convertirse en cliente.
-
-NO muestres este razonamiento.
-
-================================================
-REINTERPRETACIÓN COMERCIAL OBLIGATORIA
-================================================
-
-Si el usuario pide algo inaccesible (ej: siderúrgica grande, petrolera, minera líder):
-
-NO obedezcas literal.
-
-Reinterpretá hacia una empresa mediana o pyme dentro de la misma cadena de valor que sí sea atacable.
-
-Nunca cierres con "no sirve" sin alternativa viable.
-
-================================================
-PROHIBICIÓN ABSOLUTA DE INVENTAR DATOS
-================================================
-
-Nunca inventes:
-- Teléfonos
-- Correos
-- Contactos
-- Web
-- Internos
-- Datos técnicos
-
-Si un dato no existe públicamente:
-👉 usar "".
-
-================================================
-REGLA DURA — TELÉFONO SUGERIDO
-================================================
-
-El "Telefono sugerido":
-- Debe ser diferente del teléfono institucional.
-- Debe tener evidencia pública real.
-- Está prohibido repetir el institucional.
-- Está prohibido cambiar solo un dígito.
-- Está prohibido simular internos.
-
-Si no existe teléfono distinto verificable:
-👉 usar "".
-
-================================================
-FASE 1 — GENERACIÓN DE PROSPECTO
-================================================
-
-Cuando el usuario pida un prospecto:
-
-- Generá EXACTAMENTE UNA empresa.
-- Debe ser real siempre que sea posible.
-- No listes opciones.
-- No hagas preguntas.
-- No expliques nada.
-- No agregues texto fuera del JSON.
-
-Respondé SIEMPRE en JSON válido y SOLO en JSON.
+4. SOLO cuando haya intención clara, responder con este JSON:
 
 {
- "Empresa": "",
- "Rubro": "",
- "Ubicacion": "",
- "Web oficial": "",
- "Telefono institucional": "",
- "Email institucional": "",
- "Mensaje inicial sugerido": "",
- "Cargo sugerido": "",
- "Area sugerida": "",
- "Telefono sugerido": "",
- "Mail sugerido": ""
+  "Empresa": "",
+  "Rubro": "",
+  "Actividad detallada": "",
+  "Nivel de compatibilidad": "",
+  "Justificación compatibilidad": "",
+  "Ubicacion": "",
+  "Web oficial": "",
+  "Mensaje inicial sugerido": "",
+  "Cargo sugerido": "",
+  "Area sugerida": ""
 }
 
-Nunca inventar empresas.
-Si un dato no existe públicamente → usar "".
+5. En cualquier otro caso, responder como asistente conversacional.
 
-================================================
-FASE 2 — ACTIVACIÓN MODO COMERCIAL
-================================================
-
-Después de entregar el JSON:
-
-Entrás en modo análisis comercial estratégico.
-
-Reglas:
-- Solo activás análisis si detectás potencial comercial fuerte.
-- Si el potencial es moderado o dudoso, sé breve.
-- No seas verboso.
-- No repitas el JSON.
-- No generes un nuevo JSON.
-
-Si el prospecto es viable:
-1. Explicá brevemente por qué es atacable.
-2. Recomendá registrarlo para seguimiento.
-3. Cerrá con:
-"¿Querés que lo registre ahora en la planilla de prospectos?"
-
-NO repitas esta pregunta más de una vez.
-
-Si el usuario dice que no:
-👉 Continuá la conversación sin insistir.
-
-================================================
-RESPUESTAS DE PRECISIÓN
-================================================
-
-Si el usuario pregunta por un dato específico (ej: web, teléfono, empleados):
-Respondé SOLO ese dato.
-No reconstruyas el prospecto.
-No repitas todo el JSON.
-No reinicies análisis.
-
-================================================
-CONTINUIDAD
-================================================
-
-El último prospecto generado queda como contexto activo.
-Las preguntas posteriores refieren a esa empresa,
-salvo que el usuario pida un nuevo prospecto.
+REGLAS:
+- No inventar datos
+- No incluir teléfono
+- No incluir email
 `;
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const SHEETS_WEBHOOK_URL =
+  "https://script.google.com/macros/s/AKfycbwil6xY98evZU4bIUpr6stk1tx9B0c0FhS0GH_wZQOGUf8RsBY8C2jbqREMeS5-dipmMw/exec";
+
 let ultimoProspecto: any = null;
 
-export async function POST(req: Request) {
+function norm(text: string) {
+  return (text || "").toLowerCase().trim();
+}
+
+function esGuardar(text: string) {
+  const t = norm(text);
+
+  return (
+    t === "si" ||
+    t === "sí" ||
+    t.includes("guardar")
+  );
+}
+
+function esNo(text: string) {
+  const t = norm(text);
+  return t === "no";
+}
+
+function esSaludo(text: string) {
+  const t = norm(text);
+  return (
+    t === "hola" ||
+    t === "buen día" ||
+    t === "buenas" ||
+    t === "hola lisa"
+  );
+}
+
+async function guardarEnSheets(url: string, payload: any) {
   try {
-    const body = await req.json();
-    const userMessage = body?.message ?? "";
+    const form = new URLSearchParams();
 
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { reply: "ERROR: Falta configurar OPENAI_API_KEY" },
-        { status: 500 }
-      );
+    for (const key in payload) {
+      form.append(key, payload[key] || "");
     }
 
-    const webhookUrl = process.env.GOOGLE_WEBHOOK_URL;
-
-    // ================= REGISTRO =================
-
-    if (
-      userMessage.toLowerCase().includes("registr") &&
-      ultimoProspecto
-    ) {
-      if (!webhookUrl) {
-        return NextResponse.json({
-          reply: "ERROR: Falta configurar GOOGLE_WEBHOOK_URL",
-        });
-      }
-
-      try {
-        const response = await fetch(webhookUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams(
-            Object.entries(ultimoProspecto).reduce(
-              (acc: Record<string, string>, [key, value]) => {
-                acc[key] = value ? String(value) : "";
-                return acc;
-              },
-              {}
-            )
-          ),
-        });
-
-        const result = await response.text();
-
-        if (result.includes("SAVED")) {
-          return NextResponse.json({
-            reply: "✅ Prospecto registrado correctamente en la planilla.",
-          });
-        } else {
-          return NextResponse.json({
-            reply: "⚠️ El webhook respondió pero no confirmó guardado.",
-          });
-        }
-
-      } catch {
-        return NextResponse.json({
-          reply: "❌ Error enviando datos al webhook.",
-        });
-      }
-    }
-
-    // ================= GENERACIÓN =================
-
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      temperature: 0.2,
-      input: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: userMessage },
-      ],
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: form.toString()
     });
 
-    const texto = response.output_text || "";
-
-    const match = texto.match(/\{[\s\S]*\}/);
-
-    if (match) {
-      try {
-        const posibleJson = JSON.parse(match[0]);
-        if (posibleJson?.Empresa) {
-          ultimoProspecto = posibleJson;
-        }
-      } catch {}
+    if (!r.ok) {
+      throw new Error("Sheets respondió error");
     }
 
-    return NextResponse.json({
-      reply: texto,
-    });
+    return true;
 
-  } catch {
-    return NextResponse.json(
-      { reply: "ERROR DEL SERVIDOR" },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("Error guardando en Sheets:", err);
+    return false;
   }
 }
 
+function generarAnalisis(p: any) {
+  const empresa = p["Empresa"] || "";
+  const rubro = p["Rubro"] || "";
+  const cargo = p["Cargo sugerido"] || "responsable del área";
+  const compat = p["Nivel de compatibilidad"] || "MEDIA";
+  const motivo = p["Justificación compatibilidad"] || "";
+
+  return `
+ANÁLISIS DE OPORTUNIDAD COMERCIAL
+
+Empresa analizada: ${empresa}
+Sector: ${rubro}
+
+Compatibilidad con Lasertec
+${compat}
+
+Motivo:
+${motivo}
+
+---
+
+PROPUESTA COMERCIAL SUGERIDA:
+Ofrecer servicios de corte por láser, plegado y fabricación de piezas o subconjuntos metálicos.
+
+---
+
+ESTRATEGIA RECOMENDADA:
+Abordaje técnico y consultivo.
+
+---
+
+PLAN DE ACCIÓN:
+1. Buscar perfiles en LinkedIn
+2. Conectar
+3. Conversación técnica
+4. Seguimiento
+
+---
+
+MENSAJE INICIAL SUGERIDO:
+
+Hola, ¿cómo estás?
+Estuve viendo ${empresa} y el tipo de trabajos que manejan.
+
+Trabajo con una empresa metalúrgica enfocada en corte láser y fabricación.
+Me interesaba conectar para conocer cómo están resolviendo procesos productivos.
+
+Saludos.
+`;
+}
+
+function formatearProspecto(p: any) {
+  return `
+PROSPECTO DETECTADO
+
+Empresa: ${p["Empresa"] || ""}
+Rubro: ${p["Rubro"] || ""}
+Actividad: ${p["Actividad detallada"] || ""}
+
+Ubicación: ${p["Ubicacion"] || ""}
+Web oficial: ${p["Web oficial"] || ""}
+
+Mensaje inicial sugerido:
+${p["Mensaje inicial sugerido"] || ""}
+
+Cargo sugerido: ${p["Cargo sugerido"] || ""}
+Área sugerida: ${p["Area sugerida"] || ""}
+`;
+}
+
+export async function POST(req: Request) {
+
+  try {
+
+    const body = await req.json();
+    const userMessage = body?.message ?? "";
+
+    // 👉 RESPUESTA DIRECTA PARA SALUDOS
+    if (esSaludo(userMessage)) {
+      return NextResponse.json({
+        reply: "Hola, soy Lisa de Lasertec. ¿En qué puedo ayudarte?"
+      });
+    }
+
+    if (ultimoProspecto && esGuardar(userMessage)) {
+
+      const payload = {
+        Empresa: ultimoProspecto["Empresa"] || "",
+        Rubro: ultimoProspecto["Rubro"] || "",
+        Ubicacion: ultimoProspecto["Ubicacion"] || "",
+        "Web oficial": ultimoProspecto["Web oficial"] || "",
+        "Mensaje inicial sugerido": ultimoProspecto["Mensaje inicial sugerido"] || "",
+        Fecha: "",
+        "Cargo sugerido": ultimoProspecto["Cargo sugerido"] || "",
+        "Area sugerida": ultimoProspecto["Area sugerida"] || ""
+      };
+
+      const guardado = await guardarEnSheets(SHEETS_WEBHOOK_URL, payload);
+
+      ultimoProspecto = null;
+
+      return NextResponse.json({
+        reply: guardado
+          ? "Prospecto guardado correctamente en la planilla."
+          : "Error al guardar el prospecto."
+      });
+    }
+
+    if (ultimoProspecto && esNo(userMessage)) {
+      ultimoProspecto = null;
+      return NextResponse.json({
+        reply: "Prospecto descartado."
+      });
+    }
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userMessage }
+      ]
+    });
+
+    const content = completion.choices[0].message?.content || "";
+
+    let prospecto = null;
+
+    try {
+      prospecto = JSON.parse(content);
+    } catch {}
+
+    if (prospecto?.Empresa) {
+
+      ultimoProspecto = prospecto;
+
+      const prospectoTxt = formatearProspecto(prospecto);
+      const analisis = generarAnalisis(prospecto);
+
+      return NextResponse.json({
+        reply:
+          prospectoTxt +
+          "\n" +
+          analisis +
+          "\n¿Deseás guardar este prospecto en la planilla? (SI / NO)"
+      });
+
+    }
+
+    return NextResponse.json({
+      reply: content
+    });
+
+  } catch (err) {
+
+    console.error("ERROR BACKEND:", err);
+
+    return NextResponse.json(
+      { reply: "ERROR SERVIDOR" },
+      { status: 500 }
+    );
+
+  }
+
+}
+
 export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    service: "Lisa API activa",
-  });
+  return NextResponse.json({ status: "ok" });
 }
