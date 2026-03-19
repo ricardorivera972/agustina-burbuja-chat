@@ -124,9 +124,7 @@ export default function ChatPage() {
     ================================= */
 
     if (pendingProspect && wantsSave(text)) {
-
       try {
-
         const payload = {
           Empresa: pendingProspect.empresa,
           Rubro: pendingProspect.rubro,
@@ -147,19 +145,14 @@ export default function ChatPage() {
 
         const result = await r.json();
 
-        console.log("Respuesta webhook:", result);
-
         setPendingProspect(null);
 
         if (result.saved) {
-
           setMsgs((m) => [
             ...m,
             { who: "LISA", text: "Prospecto guardado correctamente en la planilla." }
           ]);
-
         } else {
-
           setMsgs((m) => [
             ...m,
             {
@@ -170,11 +163,9 @@ export default function ChatPage() {
                 "Detalle: " + (result.error || JSON.stringify(result))
             }
           ]);
-
         }
 
       } catch (err: any) {
-
         setMsgs((m) => [
           ...m,
           {
@@ -184,7 +175,6 @@ export default function ChatPage() {
               (err?.message || "Error desconocido")
           }
         ]);
-
       }
 
       return;
@@ -197,7 +187,7 @@ export default function ChatPage() {
     }
 
     /* =================================
-       CONSULTA NORMAL A LISA
+       CONSULTA NORMAL
     ================================= */
 
     const r = await fetch("/api/lisa", {
@@ -215,11 +205,18 @@ export default function ChatPage() {
 
       const comercial = extractAfterJson(data.reply);
 
-      setMsgs((m) => [
-        ...m,
-        { who: "LISA", text: "", prospect: clean },
-        ...(comercial ? [{ who: "LISA", text: comercial }] : []),
-      ]);
+      setMsgs((m) => {
+        const nuevos: Msg[] = [
+          { who: "LISA", text: "", prospect: clean }
+        ];
+
+        if (comercial) {
+          nuevos.push({ who: "LISA", text: comercial });
+        }
+
+        return [...m, ...nuevos];
+      });
+
       return;
     }
 
