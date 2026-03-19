@@ -64,17 +64,11 @@ function norm(text: string) {
 
 function esGuardar(text: string) {
   const t = norm(text);
-
-  return (
-    t === "si" ||
-    t === "sí" ||
-    t.includes("guardar")
-  );
+  return t === "si" || t === "sí" || t.includes("guardar");
 }
 
 function esNo(text: string) {
-  const t = norm(text);
-  return t === "no";
+  return norm(text) === "no";
 }
 
 function esSaludo(text: string) {
@@ -99,9 +93,9 @@ async function guardarEnSheets(url: string, payload: any) {
     const r = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: form.toString()
+      body: form.toString(),
     });
 
     if (!r.ok) {
@@ -109,7 +103,6 @@ async function guardarEnSheets(url: string, payload: any) {
     }
 
     return true;
-
   } catch (err) {
     console.error("Error guardando en Sheets:", err);
     return false;
@@ -119,7 +112,6 @@ async function guardarEnSheets(url: string, payload: any) {
 function generarAnalisis(p: any) {
   const empresa = p["Empresa"] || "";
   const rubro = p["Rubro"] || "";
-  const cargo = p["Cargo sugerido"] || "responsable del área";
   const compat = p["Nivel de compatibilidad"] || "MEDIA";
   const motivo = p["Justificación compatibilidad"] || "";
 
@@ -187,72 +179,75 @@ Cargo sugerido: ${p["Cargo sugerido"] || ""}
 }
 
 export async function POST(req: Request) {
-
   try {
-
     const body = await req.json();
     const userMessage = body?.message ?? "";
 
-    // 🔥 SALUDO COMERCIAL MEJORADO
+    // 🔥 SALUDO COMERCIAL
     if (esSaludo(userMessage)) {
       return NextResponse.json({
         reply:
           "Hola, soy Lisa 👋\n\n" +
           "Puedo ayudarte a detectar empresas que necesiten servicios de corte láser, plegado y fabricación metalmecánica.\n\n" +
-          "Pasame el nombre de una empresa o un rubro y lo analizamos."
+          "Pasame el nombre de una empresa o un rubro y lo analizamos.",
       });
     }
 
+    // 🔥 GUARDAR
     if (ultimoProspecto && esGuardar(userMessage)) {
-
       const payload = {
         Empresa: ultimoProspecto["Empresa"] || "",
         Rubro: ultimoProspecto["Rubro"] || "",
         Ubicacion: ultimoProspecto["Ubicacion"] || "",
         "Web oficial": ultimoProspecto["Web oficial"] || "",
-        "Mensaje inicial sugerido": ultimoProspecto["Mensaje inicial sugerido"] || "",
+        "Mensaje inicial sugerido":
+          ultimoProspecto["Mensaje inicial sugerido"] || "",
         Fecha: "",
         "Cargo sugerido": ultimoProspecto["Cargo sugerido"] || "",
-        "Area sugerida": ultimoProspecto["Area sugerida"] || ""
+        "Area sugerida": ultimoProspecto["Area sugerida"] || "",
       };
 
-      const guardado = await guardarEnSheets(SHEETS_WEBHOOK_URL, payload);
+      const guardado = await guardarEnSheets(
+        SHEETS_WEBHOOK_URL,
+        payload
+      );
 
       ultimoProspecto = null;
 
       return NextResponse.json({
         reply: guardado
           ? "Prospecto guardado correctamente en la planilla."
-          : "Error al guardar el prospecto."
+          : "Error al guardar el prospecto.",
       });
     }
 
+    // 🔥 DESCARTAR
     if (ultimoProspecto && esNo(userMessage)) {
       ultimoProspecto = null;
       return NextResponse.json({
-        reply: "Prospecto descartado."
+        reply: "Prospecto descartado.",
       });
     }
 
+    // 🔥 CONSULTA A OPENAI
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.2,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: userMessage }
-      ]
+        { role: "user", content: userMessage },
+      ],
     });
 
     const content = completion.choices[0].message?.content || "";
 
     let prospecto = null;
-
     try {
       prospecto = JSON.parse(content);
     } catch {}
 
+    // 🔥 SI DETECTA PROSPECTO
     if (prospecto?.Empresa) {
-
       ultimoProspecto = prospecto;
 
       const prospectoTxt = formatearProspecto(prospecto);
@@ -263,26 +258,21 @@ export async function POST(req: Request) {
           prospectoTxt +
           "\n" +
           analisis +
-          "\n¿Deseás guardar este prospecto en la planilla?"
+          "\nDetecté una oportunidad interesante 👇\n\n¿Querés guardarla para seguimiento?",
       });
-
     }
 
     return NextResponse.json({
-      reply: content
+      reply: content,
     });
-
   } catch (err) {
-
     console.error("ERROR BACKEND:", err);
 
     return NextResponse.json(
       { reply: "ERROR SERVIDOR" },
       { status: 500 }
     );
-
   }
-
 }
 
 export async function GET() {
