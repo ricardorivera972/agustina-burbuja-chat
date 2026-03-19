@@ -2,9 +2,14 @@
 
 import { useState, useEffect, useRef } from "react"
 
+type Message = {
+  who: "YO" | "LISA"
+  text: string
+}
+
 export default function ChatUI() {
   const [message, setMessage] = useState("")
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -13,7 +18,8 @@ export default function ChatUI() {
     if (!message.trim()) return
 
     const userMessage = message
-    setMessages(prev => [...prev, "👤 " + userMessage])
+
+    setMessages(prev => [...prev, { who: "YO", text: userMessage }])
     setMessage("")
     setLoading(true)
 
@@ -29,12 +35,13 @@ export default function ChatUI() {
       const data = await res.json()
 
       if (data.reply) {
-        setMessages(prev => [...prev, "🤖 " + data.reply])
+        setMessages(prev => [...prev, { who: "LISA", text: data.reply }])
       } else {
-        setMessages(prev => [...prev, "⚠️ Sin respuesta del servidor"])
+        setMessages(prev => [...prev, { who: "LISA", text: "⚠️ Sin respuesta del servidor" }])
       }
+
     } catch (error) {
-      setMessages(prev => [...prev, "❌ Error conectando con Lisa"])
+      setMessages(prev => [...prev, { who: "LISA", text: "❌ Error conectando con Lisa" }])
     }
 
     setLoading(false)
@@ -66,19 +73,20 @@ export default function ChatUI() {
             style={{
               padding: "12px",
               borderRadius: "8px",
-              background: msg.startsWith("👤") ? "#dbeafe" : "#f5f5f5",
+              background: msg.who === "YO" ? "#dbeafe" : "#f5f5f5",
               whiteSpace: "pre-line"
             }}
           >
-            {msg}
+            <strong>{msg.who === "YO" ? "👤 Vos:" : "🤖 Lisa:"}</strong>
+            <br />
+            {msg.text}
           </div>
         ))}
 
-        {/* 👇 referencia para scroll */}
         <div ref={bottomRef} />
       </div>
 
-      {/* INPUT ABAJO */}
+      {/* INPUT */}
       <div style={{ display: "flex", gap: 5 }}>
         <input
           value={message}
