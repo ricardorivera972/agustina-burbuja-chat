@@ -63,7 +63,7 @@ export default async function handler(req, res) {
       parsed = null;
     }
 
-    if (!parsed || parsed.ok !== true) {
+   if (!parsed || parsed.status !== "SAVED")
       return res.status(500).json({
         ok: false,
         error: "Webhook response invalid",
