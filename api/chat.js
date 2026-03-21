@@ -102,9 +102,10 @@ export default async function handler(req, res) {
     const intent = detectIntent(lastUserMessage);
 
     return res.status(200).json({
-      reply,
-      intent
-    });
+  reply,
+  intent,
+  showForm: intent === true
+});
 
   } catch (error) {
     console.error("API chat error:", error);
