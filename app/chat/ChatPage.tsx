@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+alert("VERSION NUEVA CARGADA");
 
-console.log("VERSION NUEVA");
+import { useState } from "react";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
@@ -11,6 +11,8 @@ export default function ChatPage() {
 
   const enviar = async () => {
     if (!input.trim()) return;
+
+    alert("CLICK OK");
 
     const userMsg = "👤 " + input;
     setMessages((prev) => [...prev, userMsg]);
@@ -130,10 +132,7 @@ export default function ChatPage() {
             />
 
             <button
-              onClick={() => {
-                alert("CLICK OK");
-                enviar();
-              }}
+              onClick={enviar}
               style={{
                 padding: "0 15px",
                 border: "none",
