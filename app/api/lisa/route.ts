@@ -2,37 +2,48 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const SYSTEM_PROMPT = `
-Sos LISA PRO, asistente comercial industrial de LASERTEC INGENIERÍA.
+Sos un evaluador de prospectos industriales de una empresa metalúrgica.
 
-LASERTEC realiza:
+La empresa ofrece:
+
 • corte por láser
 • plegado
 • soldadura
 • pintura
-• armado de conjuntos metálicos
+• fabricación de piezas metálicas
+• armado de conjuntos y subconjuntos
+
+OBJETIVO:
+Evaluar oportunidades comerciales reales.
+
+---
 
 COMPORTAMIENTO:
 
-1. Si el usuario saluda o escribe algo general (ej: "hola", "buen día"):
-Responder como asistente humano.
+1. Si el usuario saluda:
+Responder normal.
 
-Ejemplo:
-"Hola, soy Lisa de Lasertec 👋  
-Puedo ayudarte a detectar empresas que necesiten servicios metalmecánicos.  
-Pasame el nombre de una empresa o un rubro y lo analizamos."
+2. Si menciona empresa o rubro:
+Intentar analizar directamente.
 
-2. Solo si el usuario muestra intención comercial clara:
-Generar un prospecto.
+3. Si no se entiende la actividad:
+Preguntar UNA sola vez:
+"¿A qué se dedica la empresa?"
 
-3. NUNCA generar prospectos automáticamente sin contexto.
+---
 
-4. SOLO cuando haya intención clara, responder con este JSON:
+4. SI hay info suficiente:
+
+👉 RESPONDER SOLO CON JSON (OBLIGATORIO)
+👉 SIN TEXTO EXTRA
+
+Formato:
 
 {
   "Empresa": "",
   "Rubro": "",
   "Actividad detallada": "",
-  "Nivel de compatibilidad": "",
+  "Nivel de compatibilidad": "ALTA | MEDIA | BAJA",
   "Justificación compatibilidad": "",
   "Ubicacion": "",
   "Web oficial": "",
@@ -41,12 +52,53 @@ Generar un prospecto.
   "Area sugerida": ""
 }
 
-5. En cualquier otro caso, responder como asistente conversacional.
+---
+
+PERFIL DE CLIENTE IDEAL:
+
+Priorizar empresas que:
+
+• sean industriales o productivas  
+• trabajen con acero (carbono o inoxidable)  
+• fabriquen maquinaria, estructuras o componentes metálicos  
+• integren piezas metálicas  
+• tengan producción continua  
+• tercericen procesos  
+
+• necesiten:
+  - corte láser  
+  - plegado  
+  - soldadura  
+  - pintura  
+  - fabricación de piezas  
+  - armado de conjuntos  
+
+• busquen mejorar tiempos o calidad  
+• valoren proveedores técnicos  
+
+---
+
+Evitar:
+
+• empresas comerciales  
+• software  
+• servicios sin producción  
+• grandes corporaciones  
+
+---
+
+CRITERIO:
+
+ALTA → fabricación + metal + tercerización  
+MEDIA → posible necesidad futura  
+BAJA → sin relación industrial  
+
+---
 
 REGLAS:
-- No inventar datos
-- No incluir teléfono
-- No incluir email
+
+- No inventar teléfono/email
+- Inferir si es razonable
 `;
 
 const client = new OpenAI({
@@ -73,13 +125,7 @@ function esNo(text: string) {
 
 function esSaludo(text: string) {
   const t = norm(text);
-  return (
-    t === "hola" ||
-    t === "buen día" ||
-    t === "buenos dias" ||
-    t === "buenas" ||
-    t === "hola lisa"
-  );
+  return t === "hola" || t === "buen día" || t === "buenas";
 }
 
 async function guardarEnSheets(url: string, payload: any) {
@@ -98,70 +144,17 @@ async function guardarEnSheets(url: string, payload: any) {
       body: form.toString(),
     });
 
-    if (!r.ok) {
-      throw new Error("Sheets respondió error");
-    }
-
-    return true;
-  } catch (err) {
-    console.error("Error guardando en Sheets:", err);
+    return r.ok;
+  } catch {
     return false;
   }
 }
 
-function generarAnalisis(p: any) {
-  const empresa = p["Empresa"] || "";
-  const rubro = p["Rubro"] || "";
-  const compat = p["Nivel de compatibilidad"] || "MEDIA";
-  const motivo = p["Justificación compatibilidad"] || "";
-
-  return `
-ANÁLISIS DE OPORTUNIDAD COMERCIAL
-
-Empresa analizada: ${empresa}
-Sector: ${rubro}
-
-Compatibilidad con Lasertec
-${compat}
-
-Motivo:
-${motivo}
-
----
-
-PROPUESTA COMERCIAL SUGERIDA:
-Ofrecer servicios de corte por láser, plegado y fabricación de piezas o subconjuntos metálicos.
-
----
-
-ESTRATEGIA RECOMENDADA:
-Abordaje técnico y consultivo.
-
----
-
-PLAN DE ACCIÓN:
-1. Buscar perfiles en LinkedIn
-2. Conectar
-3. Conversación técnica
-4. Seguimiento
-
----
-
-MENSAJE INICIAL SUGERIDO:
-
-Hola, ¿cómo estás?
-Estuve viendo ${empresa} y el tipo de trabajos que manejan.
-
-Trabajo con una empresa metalúrgica enfocada en corte láser y fabricación.
-Me interesaba conectar para conocer cómo están resolviendo procesos productivos.
-
-Saludos.
-`;
-}
-
 function formatearProspecto(p: any) {
   return `
-PROSPECTO DETECTADO
+━━━━━━━━━━━━━━━━━━━━━━
+🏢 DATOS DEL PROSPECTO
+━━━━━━━━━━━━━━━━━━━━━━
 
 Empresa: ${p["Empresa"] || ""}
 Rubro: ${p["Rubro"] || ""}
@@ -170,11 +163,62 @@ Actividad: ${p["Actividad detallada"] || ""}
 Ubicación: ${p["Ubicacion"] || ""}
 Web oficial: ${p["Web oficial"] || ""}
 
-Mensaje inicial sugerido:
-${p["Mensaje inicial sugerido"] || ""}
-
 Cargo sugerido: ${p["Cargo sugerido"] || ""}
 Área sugerida: ${p["Area sugerida"] || ""}
+
+✉️ Mensaje inicial sugerido:
+${p["Mensaje inicial sugerido"] || ""}
+`;
+}
+
+function generarAnalisis(p: any) {
+  const empresa = p["Empresa"] || "";
+  const rubro = p["Rubro"] || "";
+  const compat = p["Nivel de compatibilidad"] || "";
+  const motivo = p["Justificación compatibilidad"] || "";
+
+  return `
+━━━━━━━━━━━━━━━━━━━━━━
+📊 ANÁLISIS DE OPORTUNIDAD
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏢 Empresa: ${empresa}
+🏭 Rubro: ${rubro}
+
+🔎 Compatibilidad: ${compat}
+
+🧠 Motivo:
+${motivo}
+
+━━━━━━━━━━━━━━━━━━━━━━
+💡 PROPUESTA COMERCIAL
+━━━━━━━━━━━━━━━━━━━━━━
+
+Ofrecer servicios de:
+
+• corte por láser  
+• plegado  
+• soldadura  
+• pintura  
+• fabricación de piezas  
+• armado de conjuntos  
+
+━━━━━━━━━━━━━━━━━━━━━━
+📈 ESTRATEGIA RECOMENDADA
+━━━━━━━━━━━━━━━━━━━━━━
+
+Abordaje técnico y consultivo.
+Detectar necesidades productivas y ofrecer mejoras en costos, tiempos o calidad.
+
+━━━━━━━━━━━━━━━━━━━━━━
+🚀 PLAN DE ACCIÓN
+━━━━━━━━━━━━━━━━━━━━━━
+
+1. Buscar responsables en LinkedIn  
+2. Conectar  
+3. Iniciar conversación técnica  
+4. Detectar necesidad  
+5. Proponer solución  
 `;
 }
 
@@ -183,53 +227,26 @@ export async function POST(req: Request) {
     const body = await req.json();
     const userMessage = body?.message ?? "";
 
-    // 🔥 SALUDO COMERCIAL
     if (esSaludo(userMessage)) {
       return NextResponse.json({
-        reply:
-          "Hola, soy Lisa 👋\n\n" +
-          "Puedo ayudarte a detectar empresas que necesiten servicios de corte láser, plegado y fabricación metalmecánica.\n\n" +
-          "Pasame el nombre de una empresa o un rubro y lo analizamos.",
+        reply: "Hola 👋 Pasame una empresa y la evaluamos.",
       });
     }
 
-    // 🔥 GUARDAR
     if (ultimoProspecto && esGuardar(userMessage)) {
-      const payload = {
-        Empresa: ultimoProspecto["Empresa"] || "",
-        Rubro: ultimoProspecto["Rubro"] || "",
-        Ubicacion: ultimoProspecto["Ubicacion"] || "",
-        "Web oficial": ultimoProspecto["Web oficial"] || "",
-        "Mensaje inicial sugerido":
-          ultimoProspecto["Mensaje inicial sugerido"] || "",
-        Fecha: "",
-        "Cargo sugerido": ultimoProspecto["Cargo sugerido"] || "",
-        "Area sugerida": ultimoProspecto["Area sugerida"] || "",
-      };
-
-      const guardado = await guardarEnSheets(
-        SHEETS_WEBHOOK_URL,
-        payload
-      );
-
+      const ok = await guardarEnSheets(SHEETS_WEBHOOK_URL, ultimoProspecto);
       ultimoProspecto = null;
 
       return NextResponse.json({
-        reply: guardado
-          ? "Prospecto guardado correctamente en la planilla."
-          : "Error al guardar el prospecto.",
+        reply: ok ? "Guardado correctamente." : "Error al guardar.",
       });
     }
 
-    // 🔥 DESCARTAR
     if (ultimoProspecto && esNo(userMessage)) {
       ultimoProspecto = null;
-      return NextResponse.json({
-        reply: "Prospecto descartado.",
-      });
+      return NextResponse.json({ reply: "Descartado." });
     }
 
-    // 🔥 CONSULTA A OPENAI
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.2,
@@ -246,28 +263,20 @@ export async function POST(req: Request) {
       prospecto = JSON.parse(content);
     } catch {}
 
-    // 🔥 SI DETECTA PROSPECTO
     if (prospecto?.Empresa) {
       ultimoProspecto = prospecto;
 
-      const prospectoTxt = formatearProspecto(prospecto);
-      const analisis = generarAnalisis(prospecto);
-
       return NextResponse.json({
         reply:
-          prospectoTxt +
+          formatearProspecto(prospecto) +
           "\n" +
-          analisis +
-          "\nDetecté una oportunidad interesante 👇\n\n¿Querés guardarla para seguimiento?",
+          generarAnalisis(prospecto) +
+          "\n¿Querés guardarla?",
       });
     }
 
-    return NextResponse.json({
-      reply: content,
-    });
+    return NextResponse.json({ reply: content });
   } catch (err) {
-    console.error("ERROR BACKEND:", err);
-
     return NextResponse.json(
       { reply: "ERROR SERVIDOR" },
       { status: 500 }

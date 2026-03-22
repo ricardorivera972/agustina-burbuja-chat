@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 
 type Message = {
-  who: "YO" | "LISA"
+  who: "YO" | "SISTEMA"
   text: string
 }
 
@@ -35,26 +35,26 @@ export default function ChatUI() {
       const data = await res.json()
 
       if (data.reply) {
-        setMessages(prev => [...prev, { who: "LISA", text: data.reply }])
+        setMessages(prev => [...prev, { who: "SISTEMA", text: data.reply }])
       } else {
-        setMessages(prev => [...prev, { who: "LISA", text: "⚠️ Sin respuesta del servidor" }])
+        setMessages(prev => [...prev, { who: "SISTEMA", text: "⚠️ Sin respuesta del servidor" }])
       }
 
     } catch (error) {
-      setMessages(prev => [...prev, { who: "LISA", text: "❌ Error conectando con Lisa" }])
+      setMessages(prev => [...prev, { who: "SISTEMA", text: "❌ Error de conexión" }])
     }
 
     setLoading(false)
   }
 
-  // 🔥 AUTO SCROLL
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
   return (
     <div style={{ maxWidth: 700, margin: "40px auto", fontFamily: "Arial" }}>
-      <h2>Lisa Chat</h2>
+      
+      <h2>Evaluador de Prospectos Industriales</h2>
 
       {/* CHAT */}
       <div style={{
@@ -77,7 +77,7 @@ export default function ChatUI() {
               whiteSpace: "pre-line"
             }}
           >
-            <strong>{msg.who === "YO" ? "👤 Vos:" : "🤖 Lisa:"}</strong>
+            <strong>{msg.who === "YO" ? "👤 Vos:" : "📊 Sistema:"}</strong>
             <br />
             {msg.text}
           </div>
@@ -91,7 +91,7 @@ export default function ChatUI() {
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Escribí tu mensaje..."
+          placeholder="Describí el prospecto..."
           style={{ flex: 1, padding: 10 }}
         />
 
@@ -100,7 +100,7 @@ export default function ChatUI() {
           disabled={loading}
           style={{ padding: 10 }}
         >
-          {loading ? "Enviando..." : "Enviar"}
+          {loading ? "Analizando..." : "Evaluar"}
         </button>
       </div>
     </div>

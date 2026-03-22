@@ -1,20 +1,17 @@
-export const metadata = {
-  title: "Lisa Web",
-  description: "Asistente comercial Lisa",
-};
+"use client";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import ChatPage from "./ChatPage";
+
+export default function Page() {
   return (
-    <html lang="es">
-      <body style={{ margin: 0, padding: 0, fontFamily: "Arial" }}>
-        {children}
-      </body>
-    </html>
+    <>
+      {/* Tu sistema actual sigue funcionando abajo */}
+      <div style={{ padding: 40 }}>
+        <h1>Buscador de Prospectos Industriales</h1>
+      </div>
+
+      {/* CHAT FORZADO (siempre visible) */}
+      <ChatPage />
+    </>
   );
 }
-
-
