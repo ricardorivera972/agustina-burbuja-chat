@@ -11,8 +11,6 @@ export default function ChatPage() {
     if (!input.trim()) return;
 
     const userMsg = "👤 " + input;
-
-    // mostrar mensaje del usuario
     setMessages((prev) => [...prev, userMsg]);
 
     try {
@@ -21,13 +19,11 @@ export default function ChatPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        // 🔧 CORREGIDO
         body: JSON.stringify({ message: input }),
       });
 
       const data = await res.json();
 
-      // 🔧 CORREGIDO
       const botMsg = "🤖 " + (data.reply || "Sin respuesta");
 
       setMessages((prev) => [...prev, botMsg]);
@@ -132,7 +128,10 @@ export default function ChatPage() {
             />
 
             <button
-              onClick={enviar}
+              onClick={() => {
+                alert("CLICK OK");
+                enviar();
+              }}
               style={{
                 padding: "0 15px",
                 border: "none",
