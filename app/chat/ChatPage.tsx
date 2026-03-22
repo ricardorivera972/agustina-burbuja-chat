@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+console.log("VERSION NUEVA");
+
 export default function ChatPage() {
   const [input, setInput] = useState("");
   const [open, setOpen] = useState(false);
