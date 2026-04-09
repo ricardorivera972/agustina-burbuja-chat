@@ -13,8 +13,22 @@ export default function ChatUI() {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  // 🔴 detectar mobile
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+
+      // abrir automático en celular
+      if (mobile) {
+        setOpen(true)
+      }
+    }
+  }, [])
 
   const sendMessage = async () => {
     if (!message.trim()) return
@@ -35,11 +49,10 @@ export default function ChatUI() {
       })
 
       const data = await res.json()
-      console.log("RESPUESTA API:", data)
 
       if (data.reply) {
         const tieneFormulario =
-          data.reply.includes("[FORMULARIO]") || data.intencion === "compra"
+          data.reply.includes("[FORMULARIO]")
 
         if (tieneFormulario) {
           setShowForm(true)
@@ -90,7 +103,8 @@ export default function ChatUI() {
 
   return (
     <>
-      {!open && (
+      {/* 🔵 BURBUJA SOLO EN DESKTOP */}
+      {!open && !isMobile && (
         <div
           onClick={() => setOpen(true)}
           style={{
@@ -118,14 +132,15 @@ export default function ChatUI() {
         <div
           style={{
             position: "fixed",
-            bottom: "90px",
-            right: "20px",
-            width: "350px",
+            bottom: isMobile ? "0" : "90px",
+            right: isMobile ? "0" : "20px",
+            width: isMobile ? "100%" : "350px",
+            height: isMobile ? "100%" : "auto",
             background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "10px",
+            border: isMobile ? "none" : "1px solid #ccc",
+            borderRadius: isMobile ? "0" : "10px",
             zIndex: 9999,
-            boxShadow: "0 0 10px rgba(0,0,0,0.2)"
+            boxShadow: isMobile ? "none" : "0 0 10px rgba(0,0,0,0.2)"
           }}
         >
           <div
@@ -137,14 +152,14 @@ export default function ChatUI() {
               alignItems: "center"
             }}
           >
-            <b>Agustina</b>
-            <button onClick={() => setOpen(false)}>X</button>
+            <b>Asistente técnico</b>
+            {!isMobile && <button onClick={() => setOpen(false)}>X</button>}
           </div>
 
           <div
             style={{
               padding: 15,
-              maxHeight: 380,
+              height: isMobile ? "calc(100% - 120px)" : "380px",
               overflowY: "auto",
               display: "flex",
               flexDirection: "column",
@@ -168,20 +183,13 @@ export default function ChatUI() {
             ))}
 
             {showForm && (
-              <div
-                style={{
-                  border: "1px solid #ddd",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  background: "#fafafa"
-                }}
-              >
+              <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px" }}>
                 <b>📋 Completar datos</b>
 
-                <input id="empresa" placeholder="Empresa" style={{ width: "100%", marginTop: 5, padding: 6 }} />
-                <input id="nombre" placeholder="Nombre" style={{ width: "100%", marginTop: 5, padding: 6 }} />
-                <input id="contacto" placeholder="Teléfono o email" style={{ width: "100%", marginTop: 5, padding: 6 }} />
-                <textarea id="detalle" placeholder="Detalle del trabajo" style={{ width: "100%", marginTop: 5, padding: 6 }} />
+                <input id="empresa" placeholder="Empresa" style={{ width: "100%", marginTop: 5 }} />
+                <input id="nombre" placeholder="Nombre" style={{ width: "100%", marginTop: 5 }} />
+                <input id="contacto" placeholder="Teléfono o email" style={{ width: "100%", marginTop: 5 }} />
+                <textarea id="detalle" placeholder="Detalle del trabajo" style={{ width: "100%", marginTop: 5 }} />
 
                 <button
                   onClick={async () => {
@@ -196,27 +204,14 @@ export default function ChatUI() {
                       descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
                     }
 
-                    try {
-                      await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
-                        method: "POST",
-                        mode: "no-cors",
-                        body: JSON.stringify(formData),
-                      })
+                    await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
+                      method: "POST",
+                      mode: "no-cors",
+                      body: JSON.stringify(formData),
+                    })
 
-                      alert("Datos enviados correctamente")
-                      setShowForm(false)
-                    } catch (error) {
-                      alert("Error al enviar datos")
-                    }
-                  }}
-                  style={{
-                    marginTop: 8,
-                    width: "100%",
-                    padding: 8,
-                    background: "#2563eb",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 6
+                    alert("Datos enviados correctamente")
+                    setShowForm(false)
                   }}
                 >
                   Enviar datos
@@ -232,10 +227,10 @@ export default function ChatUI() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Escribí tu consulta..."
-              style={{ flex: 1, padding: 10 }}
+              style={{ flex: 1 }}
             />
 
-            <button onClick={sendMessage} disabled={loading} style={{ padding: 10 }}>
+            <button onClick={sendMessage} disabled={loading}>
               {loading ? "..." : "Enviar"}
             </button>
           </div>
