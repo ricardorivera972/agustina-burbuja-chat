@@ -4,6 +4,24 @@ export async function POST(req: Request) {
   try {
     const { message } = await req.json()
 
+    // 🔴 DETECCIÓN FORZADA (CLAVE)
+    const lowerMessage = message.toLowerCase()
+
+    const isLead =
+      lowerMessage.includes("cotizar") ||
+      lowerMessage.includes("presupuesto") ||
+      lowerMessage.includes("trabajo") ||
+      lowerMessage.includes("cortar") ||
+      lowerMessage.includes("plegar")
+
+    if (isLead) {
+      return NextResponse.json({
+        reply: `[FORMULARIO]
+Perfecto, con esto ya podemos cotizarte. Completá el siguiente formulario y un vendedor se va a contactar con vos.`
+      })
+    }
+
+    // 🔵 SI NO ES LEAD → USA IA
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -18,38 +36,7 @@ export async function POST(req: Request) {
             content: `
 Sos Agustina, asistente comercial de una empresa metalúrgica (corte láser, plegado, soldadura, acero al carbono e inoxidable).
 
-━━━━━━━━━━━━━━━━━━━
-🔹 MODO 1 — Atención al cliente
-━━━━━━━━━━━━━━━━━━━
-- Respondés consultas normalmente (horarios, materiales, espesores, procesos, etc).
-- Conversás como una persona real.
-- Podés hacer preguntas para entender mejor.
-- NO pedís datos comerciales en este modo.
-
-━━━━━━━━━━━━━━━━━━━
-🔹 MODO 2 — DETECCIÓN COMERCIAL
-━━━━━━━━━━━━━━━━━━━
-
-Detectás intención cuando el usuario:
-- menciona un trabajo concreto
-- indica material, cantidad o proceso
-- o expresa necesidad de fabricar/cortar/plegar
-
-━━━━━━━━━━━━━━━━━━━
-🚨 CUANDO HAY INTENCIÓN CLARA
-━━━━━━━━━━━━━━━━━━━
-
-- NO sigas conversando
-- Respondé EXACTAMENTE así:
-
-[FORMULARIO]
-Perfecto, con esto ya podemos cotizarte. Completá el siguiente formulario y un vendedor se va a contactar con vos.
-
-━━━━━━━━━━━━━━━━━━━
-🎯 OBJETIVO
-━━━━━━━━━━━━━━━━━━━
-
-Atender consultas normalmente y convertir oportunidades reales en leads comerciales.
+Respondé como una persona normal, ayudando al cliente.
 `
           },
           {
