@@ -23,7 +23,7 @@ export default function ChatUI() {
       setIsMobile(mobile)
 
       if (mobile) {
-        setOpen(true) // 🔥 en celular se abre solo
+        setOpen(true)
       }
     }
   }, [])
@@ -114,14 +114,17 @@ export default function ChatUI() {
             position: "fixed",
             bottom: isMobile ? "0" : "20px",
             right: isMobile ? "0" : "20px",
-            width: isMobile ? "100%" : "350px",
+            width: isMobile ? "100%" : "360px",
+            minWidth: isMobile ? "100%" : "320px",
+            maxWidth: "100vw",
             height: isMobile ? "100%" : "500px",
             background: "white",
             borderRadius: isMobile ? "0" : "12px",
             boxShadow: "0 0 20px rgba(0,0,0,0.2)",
             zIndex: 9999,
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
+            boxSizing: "border-box"
           }}
         >
           {/* HEADER */}
