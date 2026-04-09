@@ -23,7 +23,7 @@ export default function ChatUI() {
       setIsMobile(mobile)
 
       if (mobile) {
-        setOpen(true) // 🔥 se abre solo en celular
+        setOpen(true)
       }
     }
   }, [])
@@ -82,7 +82,7 @@ export default function ChatUI() {
 
   return (
     <>
-      {/* 🔵 BURBUJA */}
+      {/* BURBUJA */}
       {!open && (
         <div
           onClick={() => setOpen(true)}
@@ -107,14 +107,16 @@ export default function ChatUI() {
         </div>
       )}
 
-      {/* 🔷 CHAT */}
+      {/* CHAT */}
       {open && (
         <div
           style={{
             position: "fixed",
             bottom: isMobile ? "0" : "90px",
             right: isMobile ? "0" : "20px",
+            left: isMobile ? "0" : "auto",
             width: isMobile ? "100%" : "360px",
+            maxWidth: "95vw",
             height: isMobile ? "100%" : "500px",
             background: "white",
             borderRadius: isMobile ? "0" : "12px",
