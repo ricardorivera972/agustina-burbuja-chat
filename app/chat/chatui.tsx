@@ -21,9 +21,7 @@ export default function ChatUI() {
     const handleResize = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      if (mobile) {
-        setOpen(true);
-      }
+      if (mobile) setOpen(true);
     };
 
     handleResize();
@@ -129,7 +127,6 @@ export default function ChatUI() {
             zIndex: 9999,
             boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
           }}
-          title="Abrir Agustina"
         >
           💬
         </div>
@@ -137,6 +134,7 @@ export default function ChatUI() {
 
       {(open || isMobile) && (
         <div style={chatBoxStyle}>
+          {/* HEADER */}
           <div
             style={{
               background: "#2563eb",
@@ -166,6 +164,7 @@ export default function ChatUI() {
             )}
           </div>
 
+          {/* MENSAJES */}
           <div
             style={{
               flex: 1,
@@ -218,26 +217,10 @@ export default function ChatUI() {
               >
                 <b>Completar datos</b>
 
-                <input
-                  id="empresa"
-                  placeholder="Empresa"
-                  style={{ width: "100%", marginTop: 8, padding: 10, boxSizing: "border-box" }}
-                />
-                <input
-                  id="nombre"
-                  placeholder="Nombre"
-                  style={{ width: "100%", marginTop: 8, padding: 10, boxSizing: "border-box" }}
-                />
-                <input
-                  id="contacto"
-                  placeholder="Teléfono o email"
-                  style={{ width: "100%", marginTop: 8, padding: 10, boxSizing: "border-box" }}
-                />
-                <textarea
-                  id="detalle"
-                  placeholder="Detalle"
-                  style={{ width: "100%", marginTop: 8, padding: 10, minHeight: 90, boxSizing: "border-box" }}
-                />
+                <input id="empresa" placeholder="Empresa" style={{ width: "100%", marginTop: 8, padding: 10 }} />
+                <input id="nombre" placeholder="Nombre" style={{ width: "100%", marginTop: 8, padding: 10 }} />
+                <input id="contacto" placeholder="Teléfono o email" style={{ width: "100%", marginTop: 8, padding: 10 }} />
+                <textarea id="detalle" placeholder="Detalle" style={{ width: "100%", marginTop: 8, padding: 10 }} />
 
                 <button
                   onClick={async () => {
@@ -252,14 +235,11 @@ export default function ChatUI() {
                       descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
                     };
 
-                    await fetch(
-                      "https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec",
-                      {
-                        method: "POST",
-                        mode: "no-cors",
-                        body: JSON.stringify(formData),
-                      }
-                    );
+                    await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
+                      method: "POST",
+                      mode: "no-cors",
+                      body: JSON.stringify(formData),
+                    });
 
                     alert("Datos enviados");
                     setShowForm(false);
@@ -272,7 +252,6 @@ export default function ChatUI() {
                     color: "#fff",
                     border: "none",
                     borderRadius: 8,
-                    cursor: "pointer",
                   }}
                 >
                   Enviar
@@ -283,6 +262,7 @@ export default function ChatUI() {
             <div ref={bottomRef} />
           </div>
 
+          {/* INPUT */}
           <div
             style={{
               display: "flex",
@@ -290,6 +270,8 @@ export default function ChatUI() {
               padding: 12,
               borderTop: "1px solid #e5e5e5",
               background: "#fff",
+              position: "relative",
+              zIndex: 99999
             }}
           >
             <input
@@ -301,9 +283,11 @@ export default function ChatUI() {
                 padding: 12,
                 border: "1px solid #d0d0d0",
                 borderRadius: 8,
-                boxSizing: "border-box",
+                position: "relative",
+                zIndex: 99999
               }}
             />
+
             <button
               onClick={sendMessage}
               disabled={loading}
@@ -313,8 +297,7 @@ export default function ChatUI() {
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
-                cursor: "pointer",
-                minWidth: 82,
+                minWidth: 80
               }}
             >
               {loading ? "..." : "Enviar"}
