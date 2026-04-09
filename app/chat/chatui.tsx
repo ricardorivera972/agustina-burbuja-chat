@@ -11,9 +11,22 @@ export default function ChatUI() {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+
+      if (mobile) {
+        setOpen(true) // 🔥 se abre solo en celular
+      }
+    }
+  }, [])
 
   const sendMessage = async () => {
     if (!message.trim()) return
@@ -40,41 +53,23 @@ export default function ChatUI() {
 
         if (tieneFormulario) {
           setShowForm(true)
-
           const cleanText = data.reply.replace("[FORMULARIO]", "").trim()
 
           setMessages(prev => [
             ...prev,
-            {
-              who: "SISTEMA",
-              text: cleanText
-            }
+            { who: "SISTEMA", text: cleanText }
           ])
         } else {
           setMessages(prev => [
             ...prev,
-            {
-              who: "SISTEMA",
-              text: data.reply
-            }
+            { who: "SISTEMA", text: data.reply }
           ])
         }
-      } else {
-        setMessages(prev => [
-          ...prev,
-          {
-            who: "SISTEMA",
-            text: "⚠️ Sin respuesta del servidor"
-          }
-        ])
       }
-    } catch (error) {
+    } catch {
       setMessages(prev => [
         ...prev,
-        {
-          who: "SISTEMA",
-          text: "❌ Error de conexión"
-        }
+        { who: "SISTEMA", text: "Error de conexión" }
       ])
     }
 
@@ -86,80 +81,138 @@ export default function ChatUI() {
   }, [messages, showForm])
 
   return (
-    <div style={{ padding: 10 }}>
-      <h3>Asistente técnico</h3>
+    <>
+      {/* 🔵 BURBUJA */}
+      {!open && (
+        <div
+          onClick={() => setOpen(true)}
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            width: "60px",
+            height: "60px",
+            backgroundColor: "#2563eb",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontSize: "24px",
+            cursor: "pointer",
+            zIndex: 9999
+          }}
+        >
+          💬
+        </div>
+      )}
 
-      <div
-        style={{
-          height: "60vh",
-          overflowY: "auto",
-          border: "1px solid #ccc",
-          padding: 10,
-          borderRadius: 8,
-          marginTop: 10
-        }}
-      >
-        {messages.map((msg, index) => (
-          <div key={index} style={{ marginBottom: 10 }}>
-            <strong>{msg.who === "YO" ? "👤 Vos:" : "📊 Sistema:"}</strong>
-            <br />
-            {msg.text}
+      {/* 🔷 CHAT */}
+      {open && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: isMobile ? "0" : "90px",
+            right: isMobile ? "0" : "20px",
+            width: isMobile ? "100%" : "360px",
+            height: isMobile ? "100%" : "500px",
+            background: "white",
+            borderRadius: isMobile ? "0" : "12px",
+            boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
+          {/* HEADER */}
+          <div
+            style={{
+              padding: "12px",
+              background: "#2563eb",
+              color: "white",
+              borderTopLeftRadius: isMobile ? "0" : "12px",
+              borderTopRightRadius: isMobile ? "0" : "12px",
+              display: "flex",
+              justifyContent: "space-between"
+            }}
+          >
+            <b>Asistente técnico</b>
+            {!isMobile && (
+              <button onClick={() => setOpen(false)}>X</button>
+            )}
           </div>
-        ))}
 
-        {showForm && (
-          <div style={{ marginTop: 10 }}>
-            <b>📋 Completar datos</b>
+          {/* MENSAJES */}
+          <div
+            style={{
+              flex: 1,
+              padding: 10,
+              overflowY: "auto"
+            }}
+          >
+            {messages.map((msg, i) => (
+              <div key={i} style={{ marginBottom: 10 }}>
+                <strong>{msg.who === "YO" ? "Vos:" : "Agustina:"}</strong>
+                <br />
+                {msg.text}
+              </div>
+            ))}
 
-            <input id="empresa" placeholder="Empresa" style={{ width: "100%", marginTop: 5 }} />
-            <input id="nombre" placeholder="Nombre" style={{ width: "100%", marginTop: 5 }} />
-            <input id="contacto" placeholder="Teléfono o email" style={{ width: "100%", marginTop: 5 }} />
-            <textarea id="detalle" placeholder="Detalle del trabajo" style={{ width: "100%", marginTop: 5 }} />
+            {showForm && (
+              <div style={{ marginTop: 10 }}>
+                <b>Completar datos</b>
 
-            <button
-              onClick={async () => {
-                const contacto = (document.getElementById("contacto") as HTMLInputElement).value
-                const esEmail = contacto.includes("@")
+                <input id="empresa" placeholder="Empresa" style={{ width: "100%", marginTop: 5 }} />
+                <input id="nombre" placeholder="Nombre" style={{ width: "100%", marginTop: 5 }} />
+                <input id="contacto" placeholder="Teléfono o email" style={{ width: "100%", marginTop: 5 }} />
+                <textarea id="detalle" placeholder="Detalle" style={{ width: "100%", marginTop: 5 }} />
 
-                const formData = {
-                  empresa: (document.getElementById("empresa") as HTMLInputElement).value,
-                  nombre: (document.getElementById("nombre") as HTMLInputElement).value,
-                  email: esEmail ? contacto : "",
-                  telefono: esEmail ? "" : contacto,
-                  descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
-                }
+                <button
+                  onClick={async () => {
+                    const contacto = (document.getElementById("contacto") as HTMLInputElement).value
+                    const esEmail = contacto.includes("@")
 
-                await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
-                  method: "POST",
-                  mode: "no-cors",
-                  body: JSON.stringify(formData),
-                })
+                    const formData = {
+                      empresa: (document.getElementById("empresa") as HTMLInputElement).value,
+                      nombre: (document.getElementById("nombre") as HTMLInputElement).value,
+                      email: esEmail ? contacto : "",
+                      telefono: esEmail ? "" : contacto,
+                      descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
+                    }
 
-                alert("Datos enviados correctamente")
-                setShowForm(false)
-              }}
-              style={{ marginTop: 8, width: "100%" }}
-            >
-              Enviar datos
+                    await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
+                      method: "POST",
+                      mode: "no-cors",
+                      body: JSON.stringify(formData),
+                    })
+
+                    alert("Datos enviados")
+                    setShowForm(false)
+                  }}
+                  style={{ width: "100%", marginTop: 5 }}
+                >
+                  Enviar
+                </button>
+              </div>
+            )}
+
+            <div ref={bottomRef} />
+          </div>
+
+          {/* INPUT */}
+          <div style={{ display: "flex", padding: 10 }}>
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              style={{ flex: 1 }}
+              placeholder="Escribí..."
+            />
+            <button onClick={sendMessage}>
+              {loading ? "..." : "Enviar"}
             </button>
           </div>
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      <div style={{ display: "flex", marginTop: 10 }}>
-        <input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Escribí tu consulta..."
-          style={{ flex: 1 }}
-        />
-
-        <button onClick={sendMessage} disabled={loading}>
-          {loading ? "..." : "Enviar"}
-        </button>
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   )
 }
