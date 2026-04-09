@@ -23,7 +23,7 @@ export default function ChatUI() {
       setIsMobile(mobile)
 
       if (mobile) {
-        setOpen(true)
+        setOpen(true) // 🔥 en celular se abre solo
       }
     }
   }, [])
@@ -112,11 +112,9 @@ export default function ChatUI() {
         <div
           style={{
             position: "fixed",
-            bottom: isMobile ? "0" : "90px",
+            bottom: isMobile ? "0" : "20px",
             right: isMobile ? "0" : "20px",
-            left: isMobile ? "0" : "auto",
-            width: isMobile ? "100%" : "360px",
-            maxWidth: "95vw",
+            width: isMobile ? "100%" : "350px",
             height: isMobile ? "100%" : "500px",
             background: "white",
             borderRadius: isMobile ? "0" : "12px",
@@ -138,7 +136,7 @@ export default function ChatUI() {
               justifyContent: "space-between"
             }}
           >
-            <b>Asistente técnico</b>
+            <b>Agustina</b>
             {!isMobile && (
               <button onClick={() => setOpen(false)}>X</button>
             )}
@@ -152,6 +150,12 @@ export default function ChatUI() {
               overflowY: "auto"
             }}
           >
+            {messages.length === 0 && (
+              <div style={{ marginBottom: 10 }}>
+                Hola, ¿en qué puedo ayudarte hoy?
+              </div>
+            )}
+
             {messages.map((msg, i) => (
               <div key={i} style={{ marginBottom: 10 }}>
                 <strong>{msg.who === "YO" ? "Vos:" : "Agustina:"}</strong>
