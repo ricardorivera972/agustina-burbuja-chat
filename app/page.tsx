@@ -1,5 +1,15 @@
-import ChatUI from "./ChatUI"
+"use client";
 
-export default function HomePage() {
-  return <ChatUI />
+import ChatUI from "./chat/chatui";
+
+export default function Page() {
+  return (
+    <>
+      <div style={{ padding: 40 }}>
+        <h1>Buscador de Prospectos Industriales</h1>
+      </div>
+
+      <ChatUI />
+    </>
+  );
 }

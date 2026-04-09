@@ -1,7 +1,5 @@
 "use client";
 
-alert("VERSION NUEVA CARGADA");
-
 import { useState } from "react";
 
 export default function ChatPage() {
@@ -12,13 +10,11 @@ export default function ChatPage() {
   const enviar = async () => {
     if (!input.trim()) return;
 
-    alert("CLICK OK");
-
     const userMsg = "👤 " + input;
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      const res = await fetch("/api/lisa", {
+      const res = await fetch("/api/agustina", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

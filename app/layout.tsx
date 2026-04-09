@@ -1,17 +1,18 @@
-"use client";
+import "./globals.css";
 
-import ChatPage from "./ChatPage";
+export const metadata = {
+  title: "Agustina",
+  description: "Asistente virtual",
+};
 
-export default function Page() {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <>
-      {/* Tu sistema actual sigue funcionando abajo */}
-      <div style={{ padding: 40 }}>
-        <h1>Buscador de Prospectos Industriales</h1>
-      </div>
-
-      {/* CHAT FORZADO (siempre visible) */}
-      <ChatPage />
-    </>
+    <html lang="es">
+      <body>{children}</body>
+    </html>
   );
 }
