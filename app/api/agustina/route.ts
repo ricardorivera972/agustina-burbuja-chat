@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const { message } = await req.json()
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [
+        input: [
           {
             role: "system",
             content: `
@@ -35,33 +35,15 @@ Detectás intención cuando el usuario:
 - indica material, cantidad o proceso
 - o expresa necesidad de fabricar/cortar/plegar
 
-Ejemplos:
-- "plegar chapas de 2mm"
-- "acero inoxidable 10 piezas"
-- "necesito cortar"
-- "quiero presupuesto"
-
 ━━━━━━━━━━━━━━━━━━━
 🚨 CUANDO HAY INTENCIÓN CLARA
 ━━━━━━━━━━━━━━━━━━━
 
-- NO sigas haciendo preguntas técnicas
-- NO sigas la conversación
-- NO pidas datos en texto
-
-Respondés EXACTAMENTE así:
+- NO sigas conversando
+- Respondé EXACTAMENTE así:
 
 [FORMULARIO]
 Perfecto, con esto ya podemos cotizarte. Completá el siguiente formulario y un vendedor se va a contactar con vos.
-
-━━━━━━━━━━━━━━━━━━━
-🔴 REGLAS CRÍTICAS
-━━━━━━━━━━━━━━━━━━━
-
-- Prioridad: detectar oportunidad comercial
-- Si hay suficiente información → DERIVAR
-- No sobre-analizar
-- No seguir conversando después de detectar intención
 
 ━━━━━━━━━━━━━━━━━━━
 🎯 OBJETIVO
@@ -81,7 +63,7 @@ Atender consultas normalmente y convertir oportunidades reales en leads comercia
     const data = await response.json()
 
     const reply =
-      data.choices?.[0]?.message?.content || "No pude generar respuesta"
+      data.output?.[0]?.content?.[0]?.text || "No pude generar respuesta"
 
     return NextResponse.json({ reply })
 
