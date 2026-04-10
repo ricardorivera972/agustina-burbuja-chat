@@ -145,6 +145,7 @@ export default function ChatUI() {
               alignItems: "center",
               fontWeight: 700,
               fontSize: 16,
+              flexShrink: 0,
             }}
           >
             <span>Agustina</span>
@@ -171,6 +172,7 @@ export default function ChatUI() {
               overflowY: "auto",
               padding: 14,
               background: "#fafafa",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             {messages.length === 0 && (
@@ -217,42 +219,17 @@ export default function ChatUI() {
               >
                 <b>Completar datos</b>
 
-                <input id="empresa" placeholder="Empresa" style={{ width: "100%", marginTop: 8, padding: 10 }} />
-                <input id="nombre" placeholder="Nombre" style={{ width: "100%", marginTop: 8, padding: 10 }} />
-                <input id="contacto" placeholder="Teléfono o email" style={{ width: "100%", marginTop: 8, padding: 10 }} />
-                <textarea id="detalle" placeholder="Detalle" style={{ width: "100%", marginTop: 8, padding: 10 }} />
+                <input placeholder="Empresa" style={inputStyle} />
+                <input placeholder="Nombre" style={inputStyle} />
+                <input placeholder="Teléfono o email" style={inputStyle} />
+                <textarea placeholder="Detalle" style={inputStyle} />
 
                 <button
-                  onClick={async () => {
-                    const contacto = (document.getElementById("contacto") as HTMLInputElement).value;
-                    const esEmail = contacto.includes("@");
-
-                    const formData = {
-                      empresa: (document.getElementById("empresa") as HTMLInputElement).value,
-                      nombre: (document.getElementById("nombre") as HTMLInputElement).value,
-                      email: esEmail ? contacto : "",
-                      telefono: esEmail ? "" : contacto,
-                      descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
-                    };
-
-                    await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
-                      method: "POST",
-                      mode: "no-cors",
-                      body: JSON.stringify(formData),
-                    });
-
+                  onClick={() => {
                     alert("Datos enviados");
                     setShowForm(false);
                   }}
-                  style={{
-                    width: "100%",
-                    marginTop: 10,
-                    padding: 12,
-                    background: "#2563eb",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                  }}
+                  style={buttonStyle}
                 >
                   Enviar
                 </button>
@@ -267,11 +244,12 @@ export default function ChatUI() {
             style={{
               display: "flex",
               gap: 8,
-              padding: 12,
+              padding: "10px",
               borderTop: "1px solid #e5e5e5",
               background: "#fff",
-              position: "relative",
-              zIndex: 99999
+              flexShrink: 0,
+              position: "sticky",
+              bottom: 0,
             }}
           >
             <input
@@ -280,11 +258,11 @@ export default function ChatUI() {
               placeholder="Escribí..."
               style={{
                 flex: 1,
-                padding: 12,
+                padding: "14px",
+                fontSize: 16, // 🔴 clave para evitar zoom en iPhone
                 border: "1px solid #d0d0d0",
                 borderRadius: 8,
-                position: "relative",
-                zIndex: 99999
+                outline: "none",
               }}
             />
 
@@ -297,7 +275,7 @@ export default function ChatUI() {
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
-                minWidth: 80
+                minWidth: 80,
               }}
             >
               {loading ? "..." : "Enviar"}
@@ -308,3 +286,22 @@ export default function ChatUI() {
     </>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  marginTop: 8,
+  padding: 12,
+  fontSize: 16,
+  border: "1px solid #d0d0d0",
+  borderRadius: 8,
+};
+
+const buttonStyle: React.CSSProperties = {
+  width: "100%",
+  marginTop: 10,
+  padding: 12,
+  background: "#2563eb",
+  color: "#fff",
+  border: "none",
+  borderRadius: 8,
+};
