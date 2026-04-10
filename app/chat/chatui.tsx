@@ -156,11 +156,18 @@ export default function ChatUI() {
               justifyContent: "space-between",
               alignItems: "center",
               fontWeight: 700,
-              fontSize: 16,
               flexShrink: 0,
             }}
           >
-            <span>Agustina</span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 14 }}>
+                Vendedor digital para servicios metalúrgicos
+              </span>
+              <span style={{ fontSize: 11, opacity: 0.9 }}>
+                Detecta oportunidades de corte, plegado y soldadura y carga automáticamente los datos del cliente
+              </span>
+            </div>
+
             {!isMobile && (
               <button
                 onClick={() => setOpen(false)}
@@ -198,7 +205,7 @@ export default function ChatUI() {
                   color: "#000",
                 }}
               >
-                Hola, ¿en qué puedo ayudarte hoy?
+                Hola, puedo ayudarte con consultas sobre nuestros servicios o, si necesitás cotizar un trabajo de corte, plegado o soldadura, contame los detalles y lo gestionamos.
               </div>
             )}
 
@@ -221,7 +228,6 @@ export default function ChatUI() {
               </div>
             ))}
 
-            {/* FORMULARIO */}
             {showForm && (
               <div
                 style={{
