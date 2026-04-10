@@ -183,6 +183,7 @@ export default function ChatUI() {
                   borderRadius: 10,
                   background: "#fff",
                   border: "1px solid #e5e5e5",
+                  color: "#000",
                 }}
               >
                 Hola, ¿en qué puedo ayudarte hoy?
@@ -199,6 +200,7 @@ export default function ChatUI() {
                   background: msg.who === "YO" ? "#dbeafe" : "#fff",
                   border: "1px solid #e5e5e5",
                   whiteSpace: "pre-line",
+                  color: "#000",
                 }}
               >
                 <strong>{msg.who === "YO" ? "Vos:" : "Agustina:"}</strong>
@@ -206,35 +208,6 @@ export default function ChatUI() {
                 {msg.text}
               </div>
             ))}
-
-            {showForm && (
-              <div
-                style={{
-                  marginTop: 10,
-                  padding: 12,
-                  borderRadius: 10,
-                  background: "#fff",
-                  border: "1px solid #e5e5e5",
-                }}
-              >
-                <b>Completar datos</b>
-
-                <input placeholder="Empresa" style={inputStyle} />
-                <input placeholder="Nombre" style={inputStyle} />
-                <input placeholder="Teléfono o email" style={inputStyle} />
-                <textarea placeholder="Detalle" style={inputStyle} />
-
-                <button
-                  onClick={() => {
-                    alert("Datos enviados");
-                    setShowForm(false);
-                  }}
-                  style={buttonStyle}
-                >
-                  Enviar
-                </button>
-              </div>
-            )}
 
             <div ref={bottomRef} />
           </div>
@@ -259,10 +232,12 @@ export default function ChatUI() {
               style={{
                 flex: 1,
                 padding: "14px",
-                fontSize: 16, // 🔴 clave para evitar zoom en iPhone
+                fontSize: 16,
                 border: "1px solid #d0d0d0",
                 borderRadius: 8,
                 outline: "none",
+                color: "#000",        // 🔥 FIX
+                background: "#fff",   // 🔥 FIX
               }}
             />
 
@@ -286,22 +261,3 @@ export default function ChatUI() {
     </>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  marginTop: 8,
-  padding: 12,
-  fontSize: 16,
-  border: "1px solid #d0d0d0",
-  borderRadius: 8,
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: "100%",
-  marginTop: 10,
-  padding: 12,
-  background: "#2563eb",
-  color: "#fff",
-  border: "none",
-  borderRadius: 8,
-};
