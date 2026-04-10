@@ -15,7 +15,6 @@ export default function ChatUI() {
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  // 🔥 FIX SCROLL
   useEffect(() => {
     setTimeout(() => {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,16 +51,21 @@ export default function ChatUI() {
             .replace(/\[FORMULARIO\]/gi, "")
             .trim();
 
-          // primero mensaje
+          // 1. Mostrar mensaje SIEMPRE
           setMessages((prev) => [
             ...prev,
             { who: "SISTEMA", text: cleanText },
           ]);
 
-          // después formulario (para que no tape el mensaje)
+          // 2. Scroll al mensaje (asegura visibilidad)
+          setTimeout(() => {
+            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 150);
+
+          // 3. Mostrar formulario después (UX natural)
           setTimeout(() => {
             setShowForm(true);
-          }, 200);
+          }, 600);
         } else {
           setMessages((prev) => [
             ...prev,
@@ -197,7 +201,7 @@ export default function ChatUI() {
 
                 setShowForm(false);
 
-                // 🔥 RESET PRO
+                // reset limpio
                 setMessages([
                   {
                     who: "SISTEMA",
