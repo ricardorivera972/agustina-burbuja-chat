@@ -54,7 +54,6 @@ export default function ChatUI() {
       const data = await res.json();
 
       if (data.reply) {
-        // 🔥 DETECCIÓN ROBUSTA DEL FORMULARIO
         const tieneFormulario = data.reply
           ?.toUpperCase()
           .includes("[FORMULARIO]");
@@ -222,7 +221,7 @@ export default function ChatUI() {
               </div>
             ))}
 
-            {/* 🔥 FORMULARIO */}
+            {/* FORMULARIO */}
             {showForm && (
               <div
                 style={{
@@ -235,15 +234,45 @@ export default function ChatUI() {
               >
                 <b>Completar datos</b>
 
-                <input placeholder="Empresa" style={inputStyle} />
-                <input placeholder="Nombre" style={inputStyle} />
-                <input placeholder="Teléfono o email" style={inputStyle} />
-                <textarea placeholder="Detalle" style={inputStyle} />
+                <input id="empresa" placeholder="Empresa" style={inputStyle} />
+                <input id="nombre" placeholder="Nombre" style={inputStyle} />
+                <input id="contacto" placeholder="Teléfono o email" style={inputStyle} />
+                <textarea id="detalle" placeholder="Detalle" style={inputStyle} />
 
                 <button
-                  onClick={() => {
-                    alert("Datos enviados");
-                    setShowForm(false);
+                  onClick={async () => {
+                    const contacto = (document.getElementById("contacto") as HTMLInputElement).value;
+                    const esEmail = contacto.includes("@");
+
+                    const formData = {
+                      empresa: (document.getElementById("empresa") as HTMLInputElement).value,
+                      nombre: (document.getElementById("nombre") as HTMLInputElement).value,
+                      email: esEmail ? contacto : "",
+                      telefono: esEmail ? "" : contacto,
+                      descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
+                    };
+
+                    try {
+                      await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
+                        method: "POST",
+                        mode: "no-cors",
+                        body: JSON.stringify(formData),
+                      });
+
+                      alert("Datos enviados correctamente");
+
+                      setShowForm(false);
+
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          who: "SISTEMA",
+                          text: "Gracias, ya recibimos tus datos. Un vendedor se va a contactar con vos.",
+                        },
+                      ]);
+                    } catch {
+                      alert("Error al enviar los datos");
+                    }
                   }}
                   style={buttonStyle}
                 >
