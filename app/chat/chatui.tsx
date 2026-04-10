@@ -54,14 +54,27 @@ export default function ChatUI() {
       const data = await res.json();
 
       if (data.reply) {
-        const tieneFormulario = data.reply.includes("[FORMULARIO]");
+        // 🔥 DETECCIÓN ROBUSTA DEL FORMULARIO
+        const tieneFormulario = data.reply
+          ?.toUpperCase()
+          .includes("[FORMULARIO]");
 
         if (tieneFormulario) {
           setShowForm(true);
-          const cleanText = data.reply.replace("[FORMULARIO]", "").trim();
-          setMessages((prev) => [...prev, { who: "SISTEMA", text: cleanText }]);
+
+          const cleanText = data.reply
+            .replace(/\[FORMULARIO\]/gi, "")
+            .trim();
+
+          setMessages((prev) => [
+            ...prev,
+            { who: "SISTEMA", text: cleanText },
+          ]);
         } else {
-          setMessages((prev) => [...prev, { who: "SISTEMA", text: data.reply }]);
+          setMessages((prev) => [
+            ...prev,
+            { who: "SISTEMA", text: data.reply },
+          ]);
         }
       } else {
         setMessages((prev) => [
@@ -209,6 +222,36 @@ export default function ChatUI() {
               </div>
             ))}
 
+            {/* 🔥 FORMULARIO */}
+            {showForm && (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 12,
+                  borderRadius: 10,
+                  background: "#fff",
+                  border: "1px solid #e5e5e5",
+                }}
+              >
+                <b>Completar datos</b>
+
+                <input placeholder="Empresa" style={inputStyle} />
+                <input placeholder="Nombre" style={inputStyle} />
+                <input placeholder="Teléfono o email" style={inputStyle} />
+                <textarea placeholder="Detalle" style={inputStyle} />
+
+                <button
+                  onClick={() => {
+                    alert("Datos enviados");
+                    setShowForm(false);
+                  }}
+                  style={buttonStyle}
+                >
+                  Enviar
+                </button>
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
 
@@ -236,8 +279,8 @@ export default function ChatUI() {
                 border: "1px solid #d0d0d0",
                 borderRadius: 8,
                 outline: "none",
-                color: "#000",        // 🔥 FIX
-                background: "#fff",   // 🔥 FIX
+                color: "#000",
+                background: "#fff",
               }}
             />
 
@@ -261,3 +304,24 @@ export default function ChatUI() {
     </>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  marginTop: 8,
+  padding: 12,
+  fontSize: 16,
+  border: "1px solid #d0d0d0",
+  borderRadius: 8,
+  color: "#000",
+  background: "#fff",
+};
+
+const buttonStyle: React.CSSProperties = {
+  width: "100%",
+  marginTop: 10,
+  padding: 12,
+  background: "#2563eb",
+  color: "#fff",
+  border: "none",
+  borderRadius: 8,
+};
