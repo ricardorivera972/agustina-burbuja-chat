@@ -15,8 +15,11 @@ export default function ChatUI() {
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
+  // 🔥 FIX SCROLL
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   }, [messages, showForm]);
 
   const sendMessage = async () => {
@@ -45,16 +48,20 @@ export default function ChatUI() {
           .includes("[FORMULARIO]");
 
         if (tieneFormulario) {
-          setShowForm(true);
-
           const cleanText = data.reply
             .replace(/\[FORMULARIO\]/gi, "")
             .trim();
 
+          // primero mensaje
           setMessages((prev) => [
             ...prev,
             { who: "SISTEMA", text: cleanText },
           ]);
+
+          // después formulario (para que no tape el mensaje)
+          setTimeout(() => {
+            setShowForm(true);
+          }, 200);
         } else {
           setMessages((prev) => [
             ...prev,
@@ -83,7 +90,7 @@ export default function ChatUI() {
         margin: "40px auto",
         width: "100%",
         maxWidth: 420,
-        height: "80vh",
+        height: "90vh",
         background: "#fff",
         borderRadius: 16,
         boxShadow: "0 12px 32px rgba(0,0,0,0.20)",
@@ -131,7 +138,11 @@ export default function ChatUI() {
               color: "#000",
             }}
           >
-            Hola, puedo ayudarte con consultas sobre nuestros servicios o, si necesitás cotizar un trabajo de corte, plegado o soldadura, contame los detalles y lo gestionamos.
+            Hola, soy el asistente comercial.
+
+            Puedo ayudarte con consultas técnicas o, si necesitás cotizar un trabajo de corte, plegado o soldadura, contame qué necesitás y lo gestionamos.
+
+            Si corresponde, también puedo tomar tus datos para que un vendedor te contacte.
           </div>
         )}
 
@@ -183,7 +194,16 @@ export default function ChatUI() {
                 });
 
                 alert("Datos enviados");
+
                 setShowForm(false);
+
+                // 🔥 RESET PRO
+                setMessages([
+                  {
+                    who: "SISTEMA",
+                    text: "Gracias, recibimos tus datos. Un vendedor se va a contactar con vos.\n\n¿Te puedo ayudar con algo más?",
+                  },
+                ]);
               }}
               style={buttonStyle}
             >
@@ -220,7 +240,7 @@ export default function ChatUI() {
         />
 
         <button onClick={sendMessage} style={buttonStyle}>
-          Enviar
+          {loading ? "..." : "Enviar"}
         </button>
       </div>
     </div>
@@ -239,7 +259,6 @@ const inputStyle = {
 };
 
 const buttonStyle = {
-  marginTop: 8,
   padding: 10,
   borderRadius: 8,
   border: "none",
