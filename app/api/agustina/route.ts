@@ -4,7 +4,6 @@ export async function POST(req: Request) {
   try {
     const { message } = await req.json()
 
-    // 🔴 DETECCIÓN FORZADA (CLAVE)
     const lowerMessage = message.toLowerCase()
 
     // 🟡 EXCEPCIÓN: ASESORAMIENTO (NO abrir formulario)
@@ -19,9 +18,9 @@ export async function POST(req: Request) {
       lowerMessage.includes("presupuesto") ||
       lowerMessage.includes("trabajo") ||
       lowerMessage.includes("cortar") ||
-      lowerMessage.includes("corte") ||     // 🔴 NUEVO
+      lowerMessage.includes("corte") ||
       lowerMessage.includes("plegar") ||
-      lowerMessage.includes("plegado")      // 🔴 NUEVO
+      lowerMessage.includes("plegado")
 
     if (isLead) {
       return NextResponse.json({
@@ -44,6 +43,14 @@ Perfecto, con esto ya podemos cotizarte. Completá el siguiente formulario y un 
             role: "system",
             content: `
 Sos Agustina, asistente comercial de una empresa metalúrgica (corte láser, plegado, soldadura, acero al carbono e inoxidable).
+
+Tu objetivo es ayudar al cliente y entender qué necesita.
+
+IMPORTANTE:
+- No pidas datos de contacto
+- No digas que un asesor se va a comunicar
+- No menciones formularios
+- Solo hacé preguntas para entender mejor la necesidad
 
 Respondé como una persona normal, ayudando al cliente.
 `
