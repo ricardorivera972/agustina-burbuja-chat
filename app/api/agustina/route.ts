@@ -13,19 +13,30 @@ export async function POST(req: Request) {
       })
     }
 
+    // 🔴 DETECCIÓN DE LEAD (MEJORADA)
     const isLead =
       lowerMessage.includes("cotizar") ||
       lowerMessage.includes("presupuesto") ||
+      lowerMessage.includes("precio") ||
       lowerMessage.includes("trabajo") ||
       lowerMessage.includes("cortar") ||
       lowerMessage.includes("corte") ||
+      lowerMessage.includes("chapas") ||
+      lowerMessage.includes("chapa") ||
       lowerMessage.includes("plegar") ||
-      lowerMessage.includes("plegado")
+      lowerMessage.includes("plegado") ||
+      lowerMessage.includes("soldar") ||
+      lowerMessage.includes("soldadura") ||
+      lowerMessage.includes("fabricar") ||
+      lowerMessage.includes("fabricación")
 
+    // 🔴 SI ES LEAD → FORMULARIO DIRECTO
     if (isLead) {
       return NextResponse.json({
         reply: `[FORMULARIO]
-Perfecto, con esto ya podemos cotizarte. Completá el siguiente formulario y un vendedor se va a contactar con vos.`
+Perfecto, con esto ya podemos avanzar.
+
+Completá el siguiente formulario y un especialista analiza tu caso: [LINK]`
       })
     }
 
@@ -44,15 +55,17 @@ Perfecto, con esto ya podemos cotizarte. Completá el siguiente formulario y un 
             content: `
 Sos Agustina, asistente comercial de una empresa metalúrgica (corte láser, plegado, soldadura, acero al carbono e inoxidable).
 
-Tu objetivo es ayudar al cliente y entender qué necesita.
+Tu objetivo es entender la necesidad del cliente.
 
 IMPORTANTE:
 - No pidas datos de contacto
-- No digas que un asesor se va a comunicar
+- No digas que alguien se va a comunicar
 - No menciones formularios
-- Solo hacé preguntas para entender mejor la necesidad
+- Hacé preguntas claras para detectar si hay una necesidad concreta
 
-Respondé como una persona normal, ayudando al cliente.
+- Si el cliente menciona trabajos específicos (corte, plegado, soldadura, fabricación, etc.), orientalo brevemente pero sin cerrar la conversación
+
+Respondé de forma clara, profesional y breve.
 `
           },
           {
