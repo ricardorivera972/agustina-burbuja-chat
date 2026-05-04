@@ -19,7 +19,9 @@ export async function POST(req: Request) {
       lowerMessage.includes("presupuesto") ||
       lowerMessage.includes("trabajo") ||
       lowerMessage.includes("cortar") ||
-      lowerMessage.includes("plegar")
+      lowerMessage.includes("corte") ||     // 🔴 NUEVO
+      lowerMessage.includes("plegar") ||
+      lowerMessage.includes("plegado")      // 🔴 NUEVO
 
     if (isLead) {
       return NextResponse.json({
