@@ -7,6 +7,13 @@ export async function POST(req: Request) {
     // 🔴 DETECCIÓN FORZADA (CLAVE)
     const lowerMessage = message.toLowerCase()
 
+    // 🟡 EXCEPCIÓN: ASESORAMIENTO (NO abrir formulario)
+    if (lowerMessage.includes("asesoramiento")) {
+      return NextResponse.json({
+        reply: "Perfecto, contame un poco más sobre lo que necesitás así te orientamos mejor."
+      })
+    }
+
     const isLead =
       lowerMessage.includes("cotizar") ||
       lowerMessage.includes("presupuesto") ||
