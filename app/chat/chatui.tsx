@@ -51,18 +51,15 @@ export default function ChatUI() {
             .replace(/\[FORMULARIO\]/gi, "")
             .trim();
 
-          // 1. Mostrar mensaje SIEMPRE
           setMessages((prev) => [
             ...prev,
             { who: "SISTEMA", text: cleanText },
           ]);
 
-          // 2. Scroll al mensaje (asegura visibilidad)
           setTimeout(() => {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
           }, 150);
 
-          // 3. Mostrar formulario después (UX natural)
           setTimeout(() => {
             setShowForm(true);
           }, 600);
@@ -145,8 +142,6 @@ export default function ChatUI() {
             Hola, soy el asistente comercial.
 
             Puedo ayudarte con consultas técnicas o, si necesitás cotizar un trabajo de corte, plegado o soldadura, contame qué necesitás y lo gestionamos.
-
-            Si corresponde, también puedo tomar tus datos para que un vendedor te contacte.
           </div>
         )}
 
@@ -201,7 +196,6 @@ export default function ChatUI() {
 
                 setShowForm(false);
 
-                // reset limpio
                 setMessages([
                   {
                     who: "SISTEMA",
