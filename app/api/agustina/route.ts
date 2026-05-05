@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       lowerMessage.includes("corte") ||
       lowerMessage.includes("chapas") ||
       lowerMessage.includes("chapa") ||
-      lowerMessage.includes("plegar") ||
+      lowerMessae.includes("plegar") ||
       lowerMessage.includes("plegado") ||
       lowerMessage.includes("soldar") ||
       lowerMessage.includes("soldadura") ||
