@@ -6,13 +6,6 @@ export async function POST(req: Request) {
 
     const lowerMessage = message.toLowerCase()
 
-    // 🟡 EXCEPCIÓN: ASESORAMIENTO (NO abrir formulario)
-    if (lowerMessage.includes("asesoramiento")) {
-      return NextResponse.json({
-        reply: "Perfecto, contame un poco más sobre lo que necesitás así te orientamos mejor."
-      })
-    }
-
     // 🔴 DETECCIÓN DE LEAD (MEJORADA)
     const isLead =
       lowerMessage.includes("cotizar") ||
@@ -29,6 +22,13 @@ export async function POST(req: Request) {
       lowerMessage.includes("soldadura") ||
       lowerMessage.includes("fabricar") ||
       lowerMessage.includes("fabricación")
+
+    // 🟡 EXCEPCIÓN: ASESORAMIENTO (NO abrir formulario)
+    if (lowerMessage.includes("asesoramiento") && !isLead) {
+      return NextResponse.json({
+        reply: "Para poder asesorarte mejor, ¿podés contarme qué tipo de trabajo necesitás?"
+      })
+    }
 
     // 🔴 SI ES LEAD → FORMULARIO DIRECTO
     if (isLead) {
