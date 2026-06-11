@@ -27,7 +27,6 @@ export default function ChatPage() {
       const botMsg = "🤖 " + (data.reply || "Sin respuesta");
 
       setMessages((prev) => [...prev, botMsg]);
-
     } catch (error) {
       console.error(error);
       setMessages((prev) => [...prev, "🤖 Error al responder"]);
@@ -55,7 +54,7 @@ export default function ChatPage() {
           justifyContent: "center",
           cursor: "pointer",
           fontSize: 24,
-          zIndex: 999
+          zIndex: 999,
         }}
       >
         💬
@@ -76,7 +75,7 @@ export default function ChatPage() {
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            zIndex: 999
+            zIndex: 999,
           }}
         >
           {/* HEADER */}
@@ -85,10 +84,10 @@ export default function ChatPage() {
               background: "#2563eb",
               color: "#fff",
               padding: 10,
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
-            Agustina
+            Asistente Comercial
           </div>
 
           {/* MENSAJES */}
@@ -97,7 +96,7 @@ export default function ChatPage() {
               flex: 1,
               padding: 10,
               overflowY: "auto",
-              fontSize: 14
+              fontSize: 14,
             }}
           >
             {messages.length === 0 && (
@@ -123,7 +122,7 @@ export default function ChatPage() {
                 flex: 1,
                 padding: 10,
                 border: "none",
-                outline: "none"
+                outline: "none",
               }}
             />
 
@@ -134,7 +133,7 @@ export default function ChatPage() {
                 border: "none",
                 background: "#2563eb",
                 color: "#fff",
-                cursor: "pointer"
+                cursor: "pointer",
               }}
             >
               Enviar

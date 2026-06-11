@@ -42,13 +42,14 @@ export default function ChatUI() {
       const data = await res.json();
 
       if (data.reply) {
-        const tieneFormulario = data.reply
-          ?.toUpperCase()
-          .includes("[FORMULARIO]");
+        const tieneFormulario =
+          data.reply?.toUpperCase().includes("FORMULARIO") ||
+          data.reply?.toUpperCase().includes("[FORMULARIO]");
 
         if (tieneFormulario) {
           const cleanText = data.reply
             .replace(/\[FORMULARIO\]/gi, "")
+            .replace(/FORMULARIO/gi, "")
             .trim();
 
           setMessages((prev) => [
@@ -111,10 +112,11 @@ export default function ChatUI() {
       >
         <div style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: 14 }}>
-            Vendedor digital para servicios metalúrgicos
+            Asistente comercial virtual
           </span>
+
           <span style={{ fontSize: 11, opacity: 0.9 }}>
-            Detecta oportunidades de corte, plegado y soldadura y carga automáticamente los datos del cliente
+            Atiende consultas, detecta oportunidades comerciales y registra prospectos automáticamente
           </span>
         </div>
       </div>
@@ -139,9 +141,9 @@ export default function ChatUI() {
               color: "#000",
             }}
           >
-            Hola, soy el asistente comercial.
+            Hola, soy tu asistente comercial virtual.
 
-            Puedo ayudarte con consultas técnicas o, si necesitás cotizar un trabajo de corte, plegado o soldadura, contame qué necesitás y lo gestionamos.
+            Puedo ayudarte a responder consultas iniciales, orientar a potenciales clientes y detectar oportunidades comerciales para distintos rubros.
           </div>
         )}
 
@@ -158,7 +160,7 @@ export default function ChatUI() {
               color: "#000",
             }}
           >
-            <strong>{msg.who === "YO" ? "Vos:" : "Agustina:"}</strong>
+            <strong>{msg.who === "YO" ? "Vos:" : "Asistente:"}</strong>
             <br />
             {msg.text}
           </div>
@@ -171,7 +173,7 @@ export default function ChatUI() {
             <input id="empresa" placeholder="Empresa" style={inputStyle} />
             <input id="nombre" placeholder="Nombre" style={inputStyle} />
             <input id="contacto" placeholder="Teléfono o email" style={inputStyle} />
-            <textarea id="detalle" placeholder="Detalle" style={inputStyle} />
+            <textarea id="detalle" placeholder="Detalle de la consulta" style={inputStyle} />
 
             <button
               onClick={async () => {
@@ -186,20 +188,23 @@ export default function ChatUI() {
                   descripcion: (document.getElementById("detalle") as HTMLTextAreaElement).value,
                 };
 
-                await fetch("https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec", {
-                  method: "POST",
-                  mode: "no-cors",
-                  body: JSON.stringify(formData),
-                });
+                await fetch(
+                  "https://script.google.com/macros/s/AKfycbxJ4ZFemcLehp14FTYLgp0frs72utzPxXhxrxxnuhCgzJH-fTCiHtJqQJd5P788_f6yIw/exec",
+                  {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify(formData),
+                  }
+                );
 
-                alert("Datos enviados");
+                alert("Gracias, recibimos tus datos.");
 
                 setShowForm(false);
 
                 setMessages([
                   {
                     who: "SISTEMA",
-                    text: "Gracias, recibimos tus datos. Un vendedor se va a contactar con vos.\n\n¿Te puedo ayudar con algo más?",
+                    text: "Gracias, recibimos tus datos. A la brevedad un representante comercial se comunicará contigo.",
                   },
                 ]);
               }}

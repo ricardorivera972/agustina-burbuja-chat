@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Agustina",
-  description: "Asistente virtual",
+  title: "Asistente Comercial",
+  description: "Demo de asistente comercial virtual",
 };
 
 export default function RootLayout({
